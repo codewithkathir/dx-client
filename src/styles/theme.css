@@ -1,0 +1,99 @@
+/**
+ * DX brand theme
+ * Primary: #FF5733 | Secondary: #1F2D3D | Text: #FFFFFF
+ */
+
+:root {
+  /* Brand source tokens (hex) */
+  --color-brand-primary: #ff5733;
+  --color-brand-primary-hover: #ff6f4d;
+  --color-brand-secondary: #1f2d3d;
+  --color-brand-secondary-muted: #2a3d52;
+  --color-brand-text: #ffffff;
+
+  /* Brand OKLCH (for Tailwind / shadcn) */
+  --brand-primary: oklch(0.68 0.211 20.5);
+  --brand-primary-hover: oklch(0.713 0.189 21.4);
+  --brand-secondary: oklch(0.293 0.025 223.5);
+  --brand-secondary-muted: oklch(0.355 0.032 222.6);
+  --brand-text: oklch(1 0 0);
+
+  /* App surfaces */
+  --background: var(--brand-secondary);
+  --foreground: var(--brand-text);
+  --card: var(--brand-secondary-muted);
+  --card-foreground: var(--brand-text);
+  --popover: var(--brand-secondary-muted);
+  --popover-foreground: var(--brand-text);
+
+  /* Actions & UI chrome */
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-text);
+  --secondary: var(--brand-secondary-muted);
+  --secondary-foreground: var(--brand-text);
+  --muted: var(--brand-secondary-muted);
+  --muted-foreground: color-mix(in oklch, var(--brand-text) 72%, transparent);
+  --accent: var(--brand-secondary-muted);
+  --accent-foreground: var(--brand-text);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: color-mix(in oklch, var(--brand-text) 18%, transparent);
+  --input: var(--brand-secondary-muted);
+  --ring: var(--brand-primary);
+
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-secondary-muted);
+  --chart-3: oklch(0.45 0.03 223.5);
+  --chart-4: oklch(0.75 0.12 20.5);
+  --chart-5: color-mix(in oklch, var(--brand-text) 55%, transparent);
+
+  --radius: 0.625rem;
+
+  /* Sidebar / topbar */
+  --sidebar: var(--brand-secondary);
+  --sidebar-foreground: var(--brand-text);
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: var(--brand-text);
+  --sidebar-accent: var(--brand-secondary-muted);
+  --sidebar-accent-foreground: var(--brand-text);
+  --sidebar-border: color-mix(in oklch, var(--brand-text) 18%, transparent);
+  --sidebar-ring: var(--brand-primary);
+}
+
+.dark {
+  --background: var(--brand-secondary);
+  --foreground: var(--brand-text);
+  --card: var(--brand-secondary-muted);
+  --card-foreground: var(--brand-text);
+  --popover: var(--brand-secondary-muted);
+  --popover-foreground: var(--brand-text);
+
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-text);
+  --secondary: var(--brand-secondary-muted);
+  --secondary-foreground: var(--brand-text);
+  --muted: var(--brand-secondary-muted);
+  --muted-foreground: color-mix(in oklch, var(--brand-text) 72%, transparent);
+  --accent: var(--brand-secondary-muted);
+  --accent-foreground: var(--brand-text);
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: color-mix(in oklch, var(--brand-text) 18%, transparent);
+  --input: var(--brand-secondary-muted);
+  --ring: var(--brand-primary);
+
+  --chart-1: var(--brand-primary);
+  --chart-2: var(--brand-secondary-muted);
+  --chart-3: oklch(0.45 0.03 223.5);
+  --chart-4: oklch(0.55 0.15 20.5);
+  --chart-5: color-mix(in oklch, var(--brand-text) 55%, transparent);
+
+  --sidebar: var(--brand-secondary);
+  --sidebar-foreground: var(--brand-text);
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: var(--brand-text);
+  --sidebar-accent: var(--brand-secondary-muted);
+  --sidebar-accent-foreground: var(--brand-text);
+  --sidebar-border: color-mix(in oklch, var(--brand-text) 18%, transparent);
+  --sidebar-ring: var(--brand-primary);
+}

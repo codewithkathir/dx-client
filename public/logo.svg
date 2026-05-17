@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" role="img" aria-label="DX Enterprise">
+  <rect width="160" height="160" rx="32" fill="#1F2D3D"/>
+  <path
+    d="M48 112V48h18.4c14.8 0 24.8 9.2 24.8 22.4 0 8.8-4.4 15.6-11.2 19.2L98 112H78.4l-14.4-18.4H66.4V112H48zm18.4-42.4h6.4c5.6 0 8.8-2.8 8.8-7.2s-3.2-7.2-8.8-7.2h-6.4v14.4zM112 112V48h18.4l20 64H132l-3.6-12.8h-14.4L110.4 112H112zm10.4-28.8 5.2-18.4 5.2 18.4h-10.4z"
+    fill="#FF5733"
+  />
+</svg>
