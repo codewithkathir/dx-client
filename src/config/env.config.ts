@@ -9,7 +9,7 @@ function getEnv(key: (typeof requiredEnv)[number]): string {
 }
 
 export const envConfig = {
-  apiUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5001/api',
+  apiUrl: 'https://api.dxrecord.com/api', //  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5001/api',
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'DX Enterprise',
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
