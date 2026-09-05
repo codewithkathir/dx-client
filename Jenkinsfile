@@ -7,10 +7,6 @@ pipeline {
         REPO = "https://github.com/codewithkathir/dx-client.git"
     }
 
-    tools {
-        nodejs "NodeJS"
-    }
-
     stages {
 
         stage('Checkout') {
