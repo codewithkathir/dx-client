@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_DIR = "/var/www/projects/dx/dx_client"
-        BRANCH = "main"
+        BRANCH = "develop"
         REPO = "https://github.com/codewithkathir/dx-client.git"
     }
 
