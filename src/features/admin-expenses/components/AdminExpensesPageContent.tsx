@@ -34,7 +34,7 @@ import {
   useAdminWhomDropdown,
 } from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
 import { useAdminSubCategoryLabelMap } from '@/features/admin-expenses/hooks/useAdminSubCategoryLabelMap';
-import { CatalogPagination } from '@/features/catalog/components/CatalogPagination';
+import { TablePagination } from '@/components/tables/TablePagination';
 import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
 import {
   formatExpenseAmount,
@@ -427,7 +427,7 @@ export function AdminExpensesPageContent() {
               </Table>
             </div>
             {meta ? (
-              <CatalogPagination
+              <TablePagination
                 meta={meta}
                 onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
               />

@@ -20,6 +20,7 @@ import { BulkActionBar } from '@/components/shared/BulkActionBar';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { TablePagination } from '@/components/tables/TablePagination';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -394,29 +395,10 @@ export function EmployeesPageContent() {
             </Table>
 
             {meta ? (
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-border px-4 py-3 sm:flex-row">
-                <p className="text-sm text-muted-foreground">
-                  Page {meta.page} of {meta.totalPages} · {meta.total} total
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={meta.page <= 1}
-                    onClick={() => dispatch(setEmployeeFilters({ page: meta.page - 1 }))}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={meta.page >= meta.totalPages}
-                    onClick={() => dispatch(setEmployeeFilters({ page: meta.page + 1 }))}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
+              <TablePagination
+                meta={meta}
+                onPageChange={(page) => dispatch(setEmployeeFilters({ page }))}
+              />
             ) : null}
           </>
         )}

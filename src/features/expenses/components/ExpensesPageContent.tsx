@@ -8,7 +8,7 @@ import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { DateRangePicker } from '@/components/shared/DateRangePicker';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { CatalogPagination } from '@/features/catalog/components/CatalogPagination';
+import { TablePagination } from '@/components/tables/TablePagination';
 import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
 import { ExpenseForm } from '@/features/expenses/components/ExpenseForm';
 import { ExpenseStatusBadge } from '@/features/expenses/components/ExpenseStatusBadge';
@@ -303,7 +303,7 @@ export function ExpensesPageContent() {
               </Table>
             </div>
             {meta ? (
-              <CatalogPagination
+              <TablePagination
                 meta={meta}
                 onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
               />

@@ -6,7 +6,7 @@ import { Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
-import { CatalogPagination } from '@/features/catalog/components/CatalogPagination';
+import { TablePagination } from '@/components/tables/TablePagination';
 import { CatalogStatusBadge } from '@/features/catalog/components/CatalogStatusBadge';
 import { CategoryForm } from '@/features/catalog/components/CategoryForm';
 import { CATALOG_STATUS_OPTIONS } from '@/features/catalog/constants/catalog.constants';
@@ -195,7 +195,7 @@ export function CategoriesTab() {
               </TableBody>
             </Table>
             {meta ? (
-              <CatalogPagination
+              <TablePagination
                 meta={meta}
                 onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
               />
