@@ -2,9 +2,17 @@ pipeline {
     agent any
 
     environment {
-        APP_DIR = "/var/www/projects/dx/dx_client"
-        BRANCH = "develop"
-        REPO = "https://github.com/codewithkathir/dx-client.git"
+        APP_NAME = "dx-client"
+        APP_DIR  = "/var/www/projects/dx/dx_client"
+        APP_ENV  = "dev"
+        APP_PORT = "3000"
+        BRANCH   = "develop"
+        REPO     = "https://github.com/codewithkathir/dx-client.git"
+    }
+
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
@@ -25,7 +33,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                sh 'npm ci'
             }
         }
 
@@ -43,24 +51,35 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Needs .env.dev in the workspace (git clean -fd keeps ignored files)
-                // or NEXT_PUBLIC_API_URL in the Jenkins environment.
-                sh 'npm run build:dev'
+                // NEXT_PUBLIC_* values are baked in at build time. The env file
+                // lives on the VPS in APP_DIR and is copied into the workspace.
+                sh """
+                    if [ ! -f ${APP_DIR}/.env.${APP_ENV} ]; then
+                        echo "Missing ${APP_DIR}/.env.${APP_ENV} (copy .env.${APP_ENV}.example and fill it in)"
+                        exit 1
+                    fi
+
+                    cp ${APP_DIR}/.env.${APP_ENV} .env.${APP_ENV}
+                    rm -rf .next
+                    npm run build:${APP_ENV}
+                """
             }
         }
 
         stage('Deploy') {
             steps {
+                // output: "standalone" -> .next/standalone holds server.js and the
+                // minimal node_modules; static assets and public/ must be added.
                 sh """
+                    cp -r .next/static .next/standalone/.next/static
+                    if [ -d public ]; then cp -r public .next/standalone/public; fi
+
                     sudo mkdir -p ${APP_DIR}
+                    sudo chown -R \$(whoami) ${APP_DIR}
 
-                    rsync -av --delete \
-                    --exclude=node_modules \
-                    --exclude=.git \
-                    ./ ${APP_DIR}/
-
-                    cd ${APP_DIR}
-                    npm install --production
+                    rsync -a --delete \
+                    --exclude='.env*' \
+                    .next/standalone/ ${APP_DIR}/
                 """
             }
         }
@@ -68,13 +87,13 @@ pipeline {
         stage('Restart Application') {
             steps {
                 sh """
-                    pm2 delete dx-client || true
+                    pm2 delete ${APP_NAME} || true
 
                     cd ${APP_DIR}
 
-                    pm2 start npm \
-                    --name dx-client \
-                    -- start
+                    PORT=${APP_PORT} HOSTNAME=0.0.0.0 \
+                    pm2 start server.js \
+                    --name ${APP_NAME}
 
                     pm2 save
                 """
@@ -83,7 +102,11 @@ pipeline {
 
         stage('Verify') {
             steps {
-                sh 'pm2 status'
+                sh """
+                    sleep 5
+                    curl -fsS -o /dev/null -w "HTTP %{http_code}\\n" http://127.0.0.1:${APP_PORT}/
+                    pm2 status
+                """
             }
         }
     }
@@ -95,6 +118,7 @@ pipeline {
 
         failure {
             echo '❌ Deployment failed'
+            sh "pm2 logs ${APP_NAME} --lines 50 --nostream || true"
         }
     }
 }
