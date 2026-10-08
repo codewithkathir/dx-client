@@ -17,6 +17,17 @@ export interface EmployeeProfile {
   lastLoginAt: string | null;
 }
 
+/** Fields an employee can change on their own profile. */
+export interface UpdateEmployeeProfilePayload {
+  empName?: string;
+  dob?: string;
+  phoneNo?: string;
+  whatsappNo?: string | null;
+  homeAddress?: string;
+  cityState?: string;
+  country?: string;
+}
+
 export interface EmployeeAuthResponse {
   accessToken: string;
   refreshToken: string;

@@ -9,4 +9,5 @@ export const SUCCESS_MESSAGES = {
   FORGOT_PASSWORD: 'If an account exists, reset instructions have been sent.',
   RESET_PASSWORD: 'Your password has been reset successfully.',
   CHANGE_PASSWORD: 'Password changed successfully.',
+  PROFILE_UPDATED: 'Your profile has been updated.',
 } as const;

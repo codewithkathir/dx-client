@@ -8,6 +8,7 @@ import type {
   EmployeeProfile,
   EmployeeRefreshPayload,
   EmployeeResetPasswordPayload,
+  UpdateEmployeeProfilePayload,
 } from '@/types/employee-auth.types';
 import type { AuthTokens } from '@/types/auth.types';
 
@@ -26,6 +27,10 @@ class EmployeeAuthService extends BaseService {
 
   getProfile(): Promise<EmployeeProfile> {
     return this.get<EmployeeProfile>(API_ENDPOINTS.AUTH.EMPLOYEE_ME);
+  }
+
+  updateProfile(payload: UpdateEmployeeProfilePayload): Promise<EmployeeProfile> {
+    return this.patch<EmployeeProfile>(API_ENDPOINTS.AUTH.EMPLOYEE_ME, payload);
   }
 
   forgotPassword(payload: EmployeeForgotPasswordPayload): Promise<void> {

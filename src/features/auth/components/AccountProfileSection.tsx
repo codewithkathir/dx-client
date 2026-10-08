@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Shield, User } from 'lucide-react';
+import { Mail, Pencil, Shield, User } from 'lucide-react';
 
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { AuthPortal } from '@/constants/auth.constants';
 import { AUTH_PORTAL } from '@/constants/auth.constants';
 import { AccountAvatar } from '@/features/auth/components/AccountAvatar';
-import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
-import { useUpdateProfilePhoto } from '@/features/auth/hooks/useUpdateProfilePhoto';
+import { AdminProfileForm } from '@/features/auth/components/AdminProfileForm';
+import { EmployeeProfileForm } from '@/features/auth/components/EmployeeProfileForm';
 import {
   adminProfilePhotoUrl,
   employeeSelfProfilePhotoUrl,
@@ -62,8 +62,7 @@ export function AccountProfileSection({
   adminProfile,
   employeeProfile,
 }: AccountProfileSectionProps) {
-  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null);
-  const uploadMutation = useUpdateProfilePhoto(portal);
+  const [isEditing, setIsEditing] = useState(false);
 
   const isAdmin = portal === AUTH_PORTAL.ADMIN;
   const displayName = isAdmin ? adminProfile?.name : employeeProfile?.empName;
@@ -72,27 +71,38 @@ export function AccountProfileSection({
     ? Boolean(adminProfile?.profilePhoto)
     : Boolean(employeeProfile?.profilePhoto);
   const photoUrl = isAdmin ? adminProfilePhotoUrl() : employeeSelfProfilePhotoUrl();
-
-  const handleSavePhoto = () => {
-    if (!pendingPhoto) return;
-    uploadMutation.mutate(pendingPhoto, {
-      onSuccess: () => setPendingPhoto(null),
-    });
-  };
+  const canEdit = !isLoading && Boolean(isAdmin ? adminProfile : employeeProfile);
+  const stopEditing = () => setIsEditing(false);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <User className="size-5 text-muted-foreground" />
-          Profile
-        </CardTitle>
-        <CardDescription>
-          {isAdmin ? 'Your administrator account' : 'Your employee account information'}
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div className="space-y-1.5">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <User className="size-5 text-muted-foreground" />
+            {isEditing ? 'Edit profile' : 'Profile'}
+          </CardTitle>
+          <CardDescription>
+            {isEditing
+              ? 'Update your photo and personal details'
+              : isAdmin
+                ? 'Your administrator account'
+                : 'Your employee account information'}
+          </CardDescription>
+        </div>
+        {canEdit && !isEditing ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Pencil className="size-4" />
+            Edit profile
+          </Button>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-8">
-        {isLoading ? (
+        {isEditing && isAdmin && adminProfile ? (
+          <AdminProfileForm profile={adminProfile} onDone={stopEditing} />
+        ) : isEditing && !isAdmin && employeeProfile ? (
+          <EmployeeProfileForm profile={employeeProfile} onDone={stopEditing} />
+        ) : isLoading ? (
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             <Skeleton className="size-32 rounded-full" />
             <div className="flex-1 space-y-3">
@@ -133,28 +143,6 @@ export function AccountProfileSection({
                   <StatusBadge status={employeeProfile.status} />
                 ) : null}
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-foreground">Profile photo</h4>
-              <ProfilePhotoUpload
-                value={pendingPhoto}
-                onChange={setPendingPhoto}
-                existingPhotoFetchUrl={hasPhoto ? photoUrl : null}
-                hasExistingPhoto={hasPhoto}
-              />
-              {pendingPhoto ? (
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={uploadMutation.isPending}
-                    onClick={handleSavePhoto}
-                  >
-                    {uploadMutation.isPending ? 'Uploading…' : 'Save photo'}
-                  </Button>
-                </div>
-              ) : null}
             </div>
 
             <div className="space-y-4">

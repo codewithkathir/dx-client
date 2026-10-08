@@ -13,6 +13,11 @@ export interface AdminProfile {
   updatedAt: string;
 }
 
+/** Fields an admin can change on their own profile. */
+export interface UpdateAdminProfilePayload {
+  name: string;
+}
+
 export interface AdminAuthResponse {
   accessToken: string;
   refreshToken: string;

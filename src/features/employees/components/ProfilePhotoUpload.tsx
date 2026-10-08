@@ -135,7 +135,8 @@ export function ProfilePhotoUpload({
             <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
               {preview ? 'Change photo' : 'Upload photo'}
             </Button>
-            {preview ? (
+            {/* Only a newly picked file can be removed; there is no API to delete a saved photo. */}
+            {value ? (
               <Button
                 type="button"
                 variant="ghost"

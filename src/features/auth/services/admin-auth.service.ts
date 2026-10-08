@@ -8,6 +8,7 @@ import type {
   AdminProfile,
   AdminRefreshPayload,
   AdminResetPasswordPayload,
+  UpdateAdminProfilePayload,
 } from '@/types/admin-auth.types';
 import type { AuthTokens } from '@/types/auth.types';
 
@@ -26,6 +27,10 @@ class AdminAuthService extends BaseService {
 
   getProfile(): Promise<AdminProfile> {
     return this.get<AdminProfile>(API_ENDPOINTS.AUTH.ADMIN_ME);
+  }
+
+  updateProfile(payload: UpdateAdminProfilePayload): Promise<AdminProfile> {
+    return this.patch<AdminProfile>(API_ENDPOINTS.AUTH.ADMIN_ME, payload);
   }
 
   forgotPassword(payload: AdminForgotPasswordPayload): Promise<void> {

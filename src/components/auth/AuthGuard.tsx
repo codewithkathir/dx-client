@@ -12,7 +12,7 @@ import {
   hasPortalSession,
 } from '@/features/auth/utils/auth.utils';
 import { clearSessionCookies } from '@/features/auth/utils/session.utils';
-import { clearAuthSession } from '@/store/auth/auth.slice';
+import { clearAuthSession, setAuthSession } from '@/store/auth/auth.slice';
 import { setAuthLoading } from '@/store/loading/loading.slice';
 import { useAppDispatch } from '@/store/hooks';
 
@@ -45,12 +45,26 @@ export function AuthGuard({ portal, children }: AuthGuardProps) {
       }
 
       try {
-        if (portal === AUTH_PORTAL.ADMIN) {
-          await adminAuthService.getProfile();
-        } else {
-          await employeeAuthService.getProfile();
-        }
+        // Restore the Redux session from the verified profile: auth state is
+        // not persisted, so after a reload only the stored token remains.
+        const user =
+          portal === AUTH_PORTAL.ADMIN
+            ? await adminAuthService.getProfile().then((admin) => ({
+                id: String(admin.id),
+                email: admin.email,
+                name: admin.name,
+                role: admin.role,
+                permissions: [] as string[],
+              }))
+            : await employeeAuthService.getProfile().then((employee) => ({
+                id: String(employee.id),
+                email: employee.email,
+                name: employee.empName,
+                role: employee.role,
+                permissions: [] as string[],
+              }));
         if (!cancelled) {
+          dispatch(setAuthSession({ user, portal }));
           setAllowed(true);
         }
       } catch {
