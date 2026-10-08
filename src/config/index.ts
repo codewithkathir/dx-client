@@ -1,3 +1,3 @@
 export { appConfig } from '@/config/app.config';
-export { envConfig, validateEnv } from '@/config/env.config';
+export { APP_ENVS, envConfig, type AppEnv } from '@/config/env.config';
 export { featureConfig } from '@/config/feature.config';

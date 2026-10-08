@@ -43,7 +43,9 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'npm run build'
+                // Needs .env.dev in the workspace (git clean -fd keeps ignored files)
+                // or NEXT_PUBLIC_API_URL in the Jenkins environment.
+                sh 'npm run build:dev'
             }
         }
 

@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:dev": "APP_ENV=dev next dev",
+    "dev:qa": "APP_ENV=qa next dev",
     "build": "next build",
+    "build:dev": "APP_ENV=dev next build",
+    "build:qa": "APP_ENV=qa next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
