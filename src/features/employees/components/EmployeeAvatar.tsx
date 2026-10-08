@@ -28,35 +28,37 @@ export function EmployeeAvatar({
   size = 'md',
   className,
 }: EmployeeAvatarProps) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<{ fetchUrl: string; src: string | null } | null>(null);
+  const activeFetchUrl = hasProfilePhoto ? employeeProfilePhotoUrl(employeeId) : null;
+  const src = activeFetchUrl && photo?.fetchUrl === activeFetchUrl ? photo.src : null;
 
   useEffect(() => {
-    if (!hasProfilePhoto) {
-      setSrc(null);
-      return;
-    }
+    if (!activeFetchUrl) return;
 
     let objectUrl: string | null = null;
     let cancelled = false;
 
     void (async () => {
       try {
-        const response = await apiClient.get<Blob>(employeeProfilePhotoUrl(employeeId), {
+        const response = await apiClient.get<Blob>(activeFetchUrl, {
           responseType: 'blob',
         });
         if (cancelled) return;
         objectUrl = URL.createObjectURL(response.data);
-        setSrc(objectUrl);
+        setPhoto({ fetchUrl: activeFetchUrl, src: objectUrl });
       } catch {
-        if (!cancelled) setSrc(null);
+        if (!cancelled) setPhoto({ fetchUrl: activeFetchUrl, src: null });
       }
     })();
 
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        setPhoto(null);
+      }
     };
-  }, [employeeId, hasProfilePhoto]);
+  }, [activeFetchUrl]);
 
   const initials = name
     .split(/\s+/)

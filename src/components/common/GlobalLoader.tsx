@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useIsClient } from '@/hooks/useIsClient';
 import { selectIsGlobalLoading } from '@/store/loading/loading.selectors';
 import { useAppSelector } from '@/store/hooks';
 
@@ -11,18 +12,16 @@ const LOADER_FADE_MS = 200;
 
 export function GlobalLoader() {
   const isLoading = useAppSelector(selectIsGlobalLoading);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Show immediately when loading starts; hide after the fade-out delay.
+  if (isLoading && !visible) {
+    setVisible(true);
+  }
 
   useEffect(() => {
-    if (isLoading) {
-      setVisible(true);
-      return;
-    }
+    if (isLoading) return;
 
     const timer = window.setTimeout(() => setVisible(false), LOADER_FADE_MS);
     return () => window.clearTimeout(timer);

@@ -30,42 +30,55 @@ export function ProfilePhotoUpload({
   error,
 }: ProfilePhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<{ source: File | string; src: string | null } | null>(
+    null,
+  );
   const [localError, setLocalError] = useState<string | undefined>();
+
+  // A newly selected file takes precedence over the existing photo.
+  const existingUrl = hasExistingPhoto ? (existingPhotoFetchUrl ?? null) : null;
+  const previewSource: File | string | null = value ?? existingUrl;
+  const preview = previewSource && loaded?.source === previewSource ? loaded.src : null;
 
   useEffect(() => {
     if (value) {
-      const url = URL.createObjectURL(value);
-      setPreview(url);
-      return () => URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setLoaded({
+          source: value,
+          src: typeof reader.result === 'string' ? reader.result : null,
+        });
+      };
+      reader.readAsDataURL(value);
+      return () => reader.abort();
     }
 
-    if (!hasExistingPhoto || !existingPhotoFetchUrl) {
-      setPreview(null);
-      return;
-    }
+    if (!existingUrl) return;
 
     let objectUrl: string | null = null;
     let cancelled = false;
 
     void (async () => {
       try {
-        const response = await apiClient.get<Blob>(existingPhotoFetchUrl, {
+        const response = await apiClient.get<Blob>(existingUrl, {
           responseType: 'blob',
         });
         if (cancelled) return;
         objectUrl = URL.createObjectURL(response.data);
-        setPreview(objectUrl);
+        setLoaded({ source: existingUrl, src: objectUrl });
       } catch {
-        if (!cancelled) setPreview(null);
+        if (!cancelled) setLoaded({ source: existingUrl, src: null });
       }
     })();
 
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        setLoaded(null);
+      }
     };
-  }, [value, existingPhotoFetchUrl, hasExistingPhoto]);
+  }, [value, existingUrl]);
 
   const handleFile = (file: File | null) => {
     setLocalError(undefined);

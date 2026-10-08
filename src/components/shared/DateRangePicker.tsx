@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { useIsClient } from '@/hooks/useIsClient';
 import { cn } from '@/lib/utils';
 
 export interface DateRange {
@@ -77,30 +78,32 @@ export function DateRangePicker({
   placeholder = 'Date range',
 }: DateRangePickerProps) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   const [draftFrom, setDraftFrom] = useState(value.from ?? '');
   const [draftTo, setDraftTo] = useState(value.to ?? '');
+  const [syncedFrom, setSyncedFrom] = useState(value.from);
+  const [syncedTo, setSyncedTo] = useState(value.to);
   const [panelPosition, setPanelPosition] = useState<PanelPosition | null>(null);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
+  // Keep drafts in sync when the controlled value changes from outside.
+  if (value.from !== syncedFrom || value.to !== syncedTo) {
+    setSyncedFrom(value.from);
+    setSyncedTo(value.to);
     setDraftFrom(value.from ?? '');
     setDraftTo(value.to ?? '');
-  }, [value.from, value.to]);
+  }
 
-  useEffect(() => {
-    if (open) {
+  const toggleOpen = () => {
+    if (!open) {
       setDraftFrom(value.from ?? '');
       setDraftTo(value.to ?? '');
     }
-  }, [open, value.from, value.to]);
+    setOpen(!open);
+  };
 
   const updatePanelPosition = useCallback(() => {
     if (!triggerRef.current) return;
@@ -108,10 +111,7 @@ export function DateRangePicker({
   }, []);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setPanelPosition(null);
-      return;
-    }
+    if (!open) return;
     updatePanelPosition();
   }, [open, updatePanelPosition]);
 
@@ -230,7 +230,7 @@ export function DateRangePicker({
             'h-10 min-w-0 flex-1 justify-start gap-2 px-3 font-normal',
             !hasValue && 'text-muted-foreground',
           )}
-          onClick={() => setOpen((current) => !current)}
+          onClick={toggleOpen}
           aria-expanded={open}
           aria-haspopup="dialog"
           aria-controls={panelId}

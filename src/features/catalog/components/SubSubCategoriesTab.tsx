@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -93,13 +93,12 @@ export function SubSubCategoriesTab() {
   const categories = categoryOptions?.items ?? [];
   const subCategories = subOptions?.items ?? [];
 
-  useEffect(() => {
-    setFilters((f) => ({ ...f, page: 1, subCategoryId: undefined }));
-  }, [filterCategoryId]);
-
-  useEffect(() => {
+  // Go back to page 1 when the debounced search changes.
+  const [pagedSearch, setPagedSearch] = useState(debouncedSearch);
+  if (debouncedSearch !== pagedSearch) {
+    setPagedSearch(debouncedSearch);
     setFilters((f) => ({ ...f, page: 1 }));
-  }, [debouncedSearch]);
+  }
 
   const closeDialog = () => {
     setDialogMode(null);
@@ -130,6 +129,7 @@ export function SubSubCategoriesTab() {
               setFilters((f) => ({
                 ...f,
                 categoryId: e.target.value ? Number(e.target.value) : undefined,
+                subCategoryId: undefined,
                 page: 1,
               }))
             }

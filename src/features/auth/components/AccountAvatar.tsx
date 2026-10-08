@@ -27,33 +27,35 @@ export function AccountAvatar({
   size = 'lg',
   className,
 }: AccountAvatarProps) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<{ fetchUrl: string; src: string | null } | null>(null);
+  const activeFetchUrl = hasProfilePhoto ? photoFetchUrl : null;
+  const src = activeFetchUrl && photo?.fetchUrl === activeFetchUrl ? photo.src : null;
 
   useEffect(() => {
-    if (!hasProfilePhoto || !photoFetchUrl) {
-      setSrc(null);
-      return;
-    }
+    if (!activeFetchUrl) return;
 
     let objectUrl: string | null = null;
     let cancelled = false;
 
     void (async () => {
       try {
-        const response = await apiClient.get<Blob>(photoFetchUrl, { responseType: 'blob' });
+        const response = await apiClient.get<Blob>(activeFetchUrl, { responseType: 'blob' });
         if (cancelled) return;
         objectUrl = URL.createObjectURL(response.data);
-        setSrc(objectUrl);
+        setPhoto({ fetchUrl: activeFetchUrl, src: objectUrl });
       } catch {
-        if (!cancelled) setSrc(null);
+        if (!cancelled) setPhoto({ fetchUrl: activeFetchUrl, src: null });
       }
     })();
 
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        setPhoto(null);
+      }
     };
-  }, [hasProfilePhoto, photoFetchUrl]);
+  }, [activeFetchUrl]);
 
   const initials = name
     .split(/\s+/)

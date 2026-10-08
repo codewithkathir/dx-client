@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -105,10 +105,6 @@ export function ExpensesPageContent() {
 
   const items = data?.items ?? [];
   const meta = data?.meta;
-
-  useEffect(() => {
-    setFilters((f) => ({ ...f, page: 1 }));
-  }, [filters.categoryId, filters.dateFrom, filters.dateTo]);
 
   const closeDialog = () => {
     setDialogMode(null);

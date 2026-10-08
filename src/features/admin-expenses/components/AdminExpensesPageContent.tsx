@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Eye,
@@ -151,19 +151,12 @@ export function AdminExpensesPageContent() {
   const meta = data?.meta;
   const employees = employeeData?.items ?? [];
 
-  useEffect(() => {
+  // Apply the debounced search and go back to page 1 when it changes.
+  const [appliedSearch, setAppliedSearch] = useState(debouncedSearch);
+  if (debouncedSearch !== appliedSearch) {
+    setAppliedSearch(debouncedSearch);
     setFilters((f) => ({ ...f, search: debouncedSearch || undefined, page: 1 }));
-  }, [debouncedSearch]);
-
-  useEffect(() => {
-    setFilters((f) => ({ ...f, page: 1 }));
-  }, [
-    filters.employeeId,
-    filters.status,
-    filters.categoryId,
-    filters.dateFrom,
-    filters.dateTo,
-  ]);
+  }
 
   const closeDialog = () => {
     setDialogMode(null);
