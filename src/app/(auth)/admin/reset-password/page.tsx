@@ -7,7 +7,8 @@ export default function AdminResetPasswordPage() {
   return (
     <AdminAuthLayout
       title={AUTH_LITERALS.ADMIN.RESET_PASSWORD_TITLE}
-      subtitle="Choose a strong password for your admin account"
+      subtitle={AUTH_LITERALS.ADMIN.RESET_PASSWORD_SUBTITLE}
+      headline="Choose a new password and carry on."
     >
       <ResetPasswordFormWrapper portal={AUTH_PORTAL.ADMIN} />
     </AdminAuthLayout>

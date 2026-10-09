@@ -1,3 +1,5 @@
+import { KeyRound } from 'lucide-react';
+
 import { AdminAuthLayout } from '@/components/layout/AdminAuthLayout';
 import { AUTH_PORTAL } from '@/constants/auth.constants';
 import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm';
@@ -8,6 +10,9 @@ export default function AdminForgotPasswordPage() {
     <AdminAuthLayout
       title={AUTH_LITERALS.ADMIN.FORGOT_PASSWORD_TITLE}
       subtitle={AUTH_LITERALS.ADMIN.FORGOT_PASSWORD_SUBTITLE}
+      headline="Locked out? We'll get you back in."
+      icon={KeyRound}
+      showBackLink
     >
       <ForgotPasswordForm portal={AUTH_PORTAL.ADMIN} />
     </AdminAuthLayout>

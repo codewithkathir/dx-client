@@ -8,6 +8,8 @@ export default function AdminLoginPage() {
     <AdminAuthLayout
       title={AUTH_LITERALS.ADMIN.LOGIN_TITLE}
       subtitle={AUTH_LITERALS.ADMIN.LOGIN_SUBTITLE}
+      tagline="Bills, invoices and expense claims for your whole company, from submission to payment."
+      showPortalBadge
     >
       <LoginForm portal={AUTH_PORTAL.ADMIN} />
     </AdminAuthLayout>

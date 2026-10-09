@@ -16,10 +16,11 @@ export function useAdminExpenseMutations() {
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.adminExpenses.all });
     void queryClient.invalidateQueries({ queryKey: queryKeys.payables.all });
+    void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   };
 
   const approveExpense = useMutation({
-    mutationFn: (id: number) => adminExpenseService.approve(id),
+    mutationFn: ({ id, note }: { id: number; note?: string | null }) => adminExpenseService.approve(id, note),
     onSuccess: () => {
       invalidate();
       toast.success(SUCCESS_MESSAGES.EXPENSE_APPROVED);
@@ -28,7 +29,7 @@ export function useAdminExpenseMutations() {
   });
 
   const rejectExpense = useMutation({
-    mutationFn: (id: number) => adminExpenseService.reject(id),
+    mutationFn: ({ id, note }: { id: number; note: string }) => adminExpenseService.reject(id, note),
     onSuccess: () => {
       invalidate();
       toast.success(SUCCESS_MESSAGES.EXPENSE_REJECTED);

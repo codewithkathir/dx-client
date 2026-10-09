@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { FolderTree, Pen, Plus, Search, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { TablePagination } from '@/components/tables/TablePagination';
@@ -13,23 +14,13 @@ import { CATALOG_STATUS_OPTIONS } from '@/features/catalog/constants/catalog.con
 import { useCatalogMutations } from '@/features/catalog/hooks/useCatalogMutations';
 import { useCategories } from '@/features/catalog/hooks/useCatalogQueries';
 import type { CategoryFormValues } from '@/features/catalog/schemas/category.schema';
-import { UI_PANEL } from '@/constants/ui.constants';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
 import {
   Table,
   TableBody,
@@ -42,7 +33,11 @@ import type { CatalogListFilters, CatalogStatus, Category } from '@/types/catalo
 
 type DialogMode = 'create' | 'edit' | 'delete' | null;
 
-const defaultFilters: CatalogListFilters = { page: 1, limit: 10, order: 'desc' };
+const defaultFilters: CatalogListFilters = {
+  page: 1,
+  limit: 10,
+  order: 'desc',
+};
 
 export function CategoriesTab() {
   const [filters, setFilters] = useState<CatalogListFilters>(defaultFilters);
@@ -73,51 +68,46 @@ export function CategoriesTab() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button size="sm" onClick={() => setDialogMode('create')}>
-          <Plus className="mr-2 size-4" />
+    <div>
+      <div className="flex flex-wrap items-center gap-3 p-4">
+        <div className="relative min-w-0 max-w-[420px] flex-[1_1_260px]">
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            type="search"
+            aria-label="Search categories"
+            placeholder="Search categories…"
+            className="pl-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <Select
+          className="w-auto flex-[0_1_180px]"
+          value={filters.status ?? ''}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              status: e.target.value as CatalogStatus | '',
+              page: 1,
+            }))
+          }
+        >
+          {CATALOG_STATUS_OPTIONS.map((o) => (
+            <option key={o.value || 'all'} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+        <Button className="ml-auto" onClick={() => setDialogMode('create')}>
+          <Plus className="size-4" />
           Add category
         </Button>
       </div>
 
-      <Card className={UI_PANEL.filter}>
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="relative md:col-span-2">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search categories…"
-              className="pl-9"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
-          <Select
-            value={filters.status ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                status: e.target.value as CatalogStatus | '',
-                page: 1,
-              }))
-            }
-          >
-            {CATALOG_STATUS_OPTIONS.map((o) => (
-              <option key={o.value || 'all'} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="mt-3 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`mr-2 size-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
-      </Card>
-
-      <Card className={cn(UI_PANEL.table, 'gap-0 py-0')}>
+      <div className="border-t border-border">
         {isError ? (
           <div className="p-6">
             <ErrorPanel
@@ -131,11 +121,7 @@ export function CategoriesTab() {
             />
           </div>
         ) : isLoading ? (
-          <div className="space-y-3 p-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
+          <TableRowsSkeleton rows={5} />
         ) : items.length === 0 ? (
           <div className="p-8">
             <EmptyState
@@ -145,11 +131,12 @@ export function CategoriesTab() {
           </div>
         ) : (
           <>
-            <Table>
+            <Table className="animate-in fade-in-0 duration-300">
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Sub categories</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -161,6 +148,7 @@ export function CategoriesTab() {
                     <TableCell className="max-w-xs truncate text-muted-foreground">
                       {row.description ?? '—'}
                     </TableCell>
+                    <TableCell className="tabular-nums">{row.subCategoryCount ?? '—'}</TableCell>
                     <TableCell>
                       <CatalogStatusBadge status={row.status} />
                     </TableCell>
@@ -175,7 +163,7 @@ export function CategoriesTab() {
                           }}
                           aria-label="Edit"
                         >
-                          <Pencil className="size-4" />
+                          <Pen className="size-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -186,7 +174,7 @@ export function CategoriesTab() {
                           }}
                           aria-label="Delete"
                         >
-                          <Trash2 className="size-4 text-destructive" />
+                          <Trash className="size-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
@@ -202,14 +190,19 @@ export function CategoriesTab() {
             ) : null}
           </>
         )}
-      </Card>
+      </div>
 
-      <Dialog open={dialogMode === 'create' || dialogMode === 'edit'} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent onClose={closeDialog}>
-          <DialogHeader>
-            <DialogTitle>{dialogMode === 'create' ? 'Add category' : 'Edit category'}</DialogTitle>
-            <DialogDescription>Main category (top level of the catalog hierarchy).</DialogDescription>
-          </DialogHeader>
+      <Dialog
+        open={dialogMode === 'create' || dialogMode === 'edit'}
+        onOpenChange={(o) => !o && closeDialog()}
+      >
+        <DialogContent className="max-w-[420px]" onClose={closeDialog}>
+          <DialogIconHeader
+            icon={FolderTree}
+            eyebrow="Level 1"
+            title={dialogMode === 'create' ? 'Add category' : 'Edit category'}
+            description="A main group, like Travel or Meals."
+          />
           <DialogBody>
             <CategoryForm
               category={active ?? undefined}

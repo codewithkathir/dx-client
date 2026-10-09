@@ -12,5 +12,5 @@ interface CatalogStatusBadgeProps {
 }
 
 export function CatalogStatusBadge({ status }: CatalogStatusBadgeProps) {
-  return <Badge variant={VARIANT_MAP[status]}>{CATALOG_STATUS_LABELS[status]}</Badge>;
+  return <Badge variant={VARIANT_MAP[status]} dot>{CATALOG_STATUS_LABELS[status]}</Badge>;
 }

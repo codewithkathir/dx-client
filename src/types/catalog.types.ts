@@ -20,6 +20,8 @@ export interface Category {
   status: CatalogStatus;
   createdAt: string;
   updatedAt: string;
+  /** Number of sub categories under it (list rows). */
+  subCategoryCount?: number;
 }
 
 export interface SubCategory {

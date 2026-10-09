@@ -2,6 +2,7 @@ import { API_ENDPOINTS } from '@/services/endpoints';
 import { BaseService } from '@/services/base.service';
 import type {
   CreateExpensePayload,
+  EmployeeExpenseSummary,
   Expense,
   ExpenseListFilters,
   ExpenseListResult,
@@ -17,6 +18,7 @@ function buildListParams(filters: ExpenseListFilters): Record<string, string | n
 
   if (filters.search) params.search = filters.search;
   if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.stage) params.stage = filters.stage;
   if (filters.categoryId) params.categoryId = filters.categoryId;
   if (filters.dateFrom) params.dateFrom = filters.dateFrom;
   if (filters.dateTo) params.dateTo = filters.dateTo;
@@ -47,6 +49,10 @@ class ExpenseService extends BaseService {
     return this.getPaginated<Expense>(API_ENDPOINTS.EMPLOYEE_EXPENSES.LIST, {
       params: buildListParams(filters),
     }).then(({ items, meta }) => ({ items, meta }));
+  }
+
+  summary(): Promise<EmployeeExpenseSummary> {
+    return this.get<EmployeeExpenseSummary>(API_ENDPOINTS.EMPLOYEE_EXPENSES.SUMMARY);
   }
 
   getById(id: number): Promise<Expense> {

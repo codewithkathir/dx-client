@@ -20,7 +20,7 @@ export function calculateTotals(subtotal: number, vatRatePercent: number) {
 }
 
 export function formatMoney(amount: number, currency = 'AED'): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,

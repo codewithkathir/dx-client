@@ -61,8 +61,8 @@ export function AdminProfileForm({ profile, onDone }: AdminProfileFormProps) {
         <Button type="button" variant="outline" onClick={onDone} disabled={updateProfile.isPending}>
           Cancel
         </Button>
-        <Button type="submit" disabled={!hasChanges || updateProfile.isPending}>
-          {updateProfile.isPending ? 'Saving…' : 'Save changes'}
+        <Button loading={updateProfile.isPending} type="submit" disabled={!hasChanges || updateProfile.isPending}>
+          Save changes
         </Button>
       </div>
     </form>

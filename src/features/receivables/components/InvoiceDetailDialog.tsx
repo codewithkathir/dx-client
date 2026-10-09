@@ -1,29 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Ban, Download, HandCoins, Pencil, Send, Trash2 } from 'lucide-react';
+import { Ban, Download, FileText, HandCoins, Pen, Plus, Send, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
+import { MoneyStrip } from '@/components/shared/MoneyStrip';
+import { SettlementDialog } from '@/components/shared/SettlementDialog';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
-import { PaymentForm } from '@/features/payables/components/PaymentForm';
 import { InvoiceStatusBadge } from '@/features/receivables/components/InvoiceStatusBadge';
 import { useInvoice, useReceivableMutations } from '@/features/receivables/hooks/useReceivables';
 import type { InvoiceDetail, Receipt } from '@/types/finance.types';
@@ -33,200 +21,215 @@ interface InvoiceDetailDialogProps {
   invoiceId: number | null;
   onClose: () => void;
   onEdit: (invoice: InvoiceDetail) => void;
+  /** Open straight into "Record receipt" (row action on the list). */
+  startWithReceipt?: boolean;
 }
 
 type Confirm = { kind: 'cancel' } | { kind: 'deleteReceipt'; receipt: Receipt } | null;
 
-function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+function Detail({ label, children, span2, mono }: { label: string; children: React.ReactNode; span2?: boolean; mono?: boolean }) {
   return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="text-sm">{children}</dd>
+    <div className={span2 ? 'sm:col-span-2' : undefined}>
+      <dt className="text-[13px] text-muted-foreground">{label}</dt>
+      <dd className={mono ? 'mt-0.5 font-mono text-[13px] font-medium' : 'mt-0.5 text-sm font-medium'}>{children}</dd>
     </div>
   );
 }
 
-export function InvoiceDetailDialog({ invoiceId, onClose, onEdit }: InvoiceDetailDialogProps) {
+/** Design "ModalInvoiceDetail". */
+export function InvoiceDetailDialog({ invoiceId, onClose, onEdit, startWithReceipt = false }: InvoiceDetailDialogProps) {
   const { data: invoice, isLoading } = useInvoice(invoiceId);
   const { sendInvoice, cancelInvoice, recordReceipt, deleteReceipt, downloadPdf } = useReceivableMutations();
-  const [showReceiptForm, setShowReceiptForm] = useState(false);
+  const [receiving, setReceiving] = useState(startWithReceipt);
   const [confirm, setConfirm] = useState<Confirm>(null);
 
+  if (invoiceId === null) return null;
+
   const close = () => {
-    setShowReceiptForm(false);
+    setReceiving(false);
     setConfirm(null);
     onClose();
   };
 
   const hasReceipts = (invoice?.receipts.length ?? 0) > 0;
-  const canReceive = invoice && ['sent', 'partially_paid'].includes(invoice.status) && invoice.balance > 0;
-  const canCancel = invoice && invoice.status !== 'cancelled' && !hasReceipts;
+  const canReceive = Boolean(invoice && ['sent', 'partially_paid'].includes(invoice.status) && invoice.balance > 0);
+  const canCancel = Boolean(invoice && invoice.status !== 'cancelled' && !hasReceipts);
+  const pdfButton = invoice ? (
+    <Button loading={downloadPdf.isPending} variant="outline" size="lg" disabled={downloadPdf.isPending} onClick={() => downloadPdf.mutate({ id: invoice.id, invoiceNo: invoice.invoiceNo })}>
+      <Download className="size-4" />
+      Tax invoice PDF
+    </Button>
+  ) : null;
 
   return (
     <>
-      <Dialog open={invoiceId !== null} onOpenChange={(open) => !open && close()}>
-        <DialogContent onClose={close} className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex flex-wrap items-center gap-2">
-              {invoice ? `Invoice ${invoice.invoiceNo}` : 'Invoice'}
-              {invoice ? <InvoiceStatusBadge invoice={invoice} /> : null}
-            </DialogTitle>
-            <DialogDescription>
-              {invoice ? `Billed to ${invoice.customerName}` : 'Loading…'}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody className="space-y-6">
+      <Dialog open={!receiving} onOpenChange={(open) => !open && close()}>
+        <DialogContent onClose={close} className="max-w-[800px]">
+          <DialogIconHeader
+            icon={FileText}
+            tone="green"
+            title={invoice ? `Invoice ${invoice.invoiceNo}` : 'Invoice'}
+            badge={invoice ? <InvoiceStatusBadge invoice={invoice} /> : null}
+            description={invoice ? `${invoice.customerName} · issued ${formatExpenseDate(invoice.invoiceDate)}` : 'Loading…'}
+          />
+          <DialogBody className="flex flex-col gap-5">
             {isLoading || !invoice ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-8 w-full" />
+                  <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
             ) : (
               <>
-                <dl className="grid gap-4 sm:grid-cols-3">
+                <MoneyStrip
+                  cells={[
+                    { label: 'Net', value: invoice.subtotalAmount },
+                    { label: `VAT ${invoice.vatRate}%`, value: invoice.vatAmount },
+                    { label: 'Total', value: invoice.totalAmount },
+                    { label: 'Received', value: invoice.amountReceived, tone: 'settled' },
+                    { label: 'Balance', value: invoice.status === 'cancelled' ? 0 : invoice.balance, tone: 'balance' },
+                  ]}
+                />
+                <dl className="grid gap-x-5 gap-y-3.5 sm:grid-cols-3">
+                  <Detail label="Customer TRN" mono>
+                    {invoice.customerTrn ?? '—'}
+                  </Detail>
                   <Detail label="Invoice date">{formatExpenseDate(invoice.invoiceDate)}</Detail>
                   <Detail label="Due date">
-                    <span className={invoice.isOverdue ? 'font-medium text-destructive' : undefined}>
-                      {formatExpenseDate(invoice.dueDate)}
-                    </span>
+                    <span className={invoice.isOverdue ? 'text-destructive' : undefined}>{formatExpenseDate(invoice.dueDate)}</span>
                   </Detail>
-                  <Detail label="Customer TRN">{invoice.customerTrn ?? '—'}</Detail>
                   <Detail label="PO reference">{invoice.poReference ?? '—'}</Detail>
-                  <div className="sm:col-span-2">
-                    <Detail label="Description">
-                      <span className="whitespace-pre-line">{invoice.description ?? '—'}</span>
-                    </Detail>
-                  </div>
-                </dl>
-
-                <dl className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-4 text-sm sm:grid-cols-5">
-                  <Detail label="Net">{formatMoney(invoice.subtotalAmount)}</Detail>
-                  <Detail label={`VAT ${invoice.vatRate}%`}>{formatMoney(invoice.vatAmount)}</Detail>
-                  <Detail label="Total">
-                    <span className="font-semibold">{formatMoney(invoice.totalAmount)}</span>
-                  </Detail>
-                  <Detail label="Received">{formatMoney(invoice.amountReceived)}</Detail>
-                  <Detail label="Balance">
-                    <span className={invoice.balance > 0 ? 'font-semibold text-destructive' : 'font-semibold'}>
-                      {formatMoney(invoice.balance)}
-                    </span>
+                  <Detail label="Description" span2>
+                    <span className="whitespace-pre-line">{invoice.description ?? '—'}</span>
                   </Detail>
                 </dl>
 
-                <section className="space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-medium">Receipts</h3>
-                    {canReceive && !showReceiptForm ? (
-                      <Button size="sm" onClick={() => setShowReceiptForm(true)}>
-                        <HandCoins className="size-4" />
+                <section aria-labelledby="invoice-receipts">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 id="invoice-receipts" className="text-sm font-semibold">
+                      Receipts
+                    </h3>
+                    {canReceive ? (
+                      <Button variant="outline" size="sm" onClick={() => setReceiving(true)}>
+                        <Plus className="size-3.5" />
                         Record receipt
                       </Button>
                     ) : null}
                   </div>
-
-                  {showReceiptForm && canReceive ? (
-                    <div className="rounded-lg border border-border p-4">
-                      <PaymentForm
-                        balance={invoice.balance}
-                        billDate={invoice.invoiceDate}
-                        dateLabel="Date received"
-                        submitLabel="Record receipt"
-                        isSubmitting={recordReceipt.isPending}
-                        onSubmit={({ paymentDate, ...rest }) =>
-                          recordReceipt.mutate(
-                            { id: invoice.id, payload: { receiptDate: paymentDate, ...rest } },
-                            { onSuccess: () => setShowReceiptForm(false) },
-                          )
-                        }
-                        onCancel={() => setShowReceiptForm(false)}
-                      />
-                    </div>
-                  ) : null}
-
                   {hasReceipts ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Method</TableHead>
-                          <TableHead>Reference</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                          <TableHead className="w-12" />
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {invoice.receipts.map((receipt) => (
-                          <TableRow key={receipt.id}>
-                            <TableCell>{formatExpenseDate(receipt.receiptDate)}</TableCell>
-                            <TableCell>{receipt.paymentMethodName ?? '—'}</TableCell>
-                            <TableCell className="text-muted-foreground">{receipt.reference ?? '—'}</TableCell>
-                            <TableCell className="text-right tabular-nums">{formatMoney(receipt.amount)}</TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label={`Delete receipt of ${formatMoney(receipt.amount)}`}
-                                onClick={() => setConfirm({ kind: 'deleteReceipt', receipt })}
-                              >
-                                <Trash2 className="size-4 text-destructive" />
-                              </Button>
-                            </TableCell>
+                    <div className="overflow-hidden rounded-xl border border-border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            <TableHead>Method</TableHead>
+                            <TableHead>Reference</TableHead>
+                            <TableHead className="w-12">
+                              <span className="sr-only">Actions</span>
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {invoice.receipts.map((receipt) => (
+                            <TableRow key={receipt.id}>
+                              <TableCell>{formatExpenseDate(receipt.receiptDate)}</TableCell>
+                              <TableCell className="text-right font-semibold text-status-success-ink tabular-nums">{formatMoney(receipt.amount)}</TableCell>
+                              <TableCell>{receipt.paymentMethodName ?? '—'}</TableCell>
+                              <TableCell className="text-muted-foreground">{receipt.reference ?? '—'}</TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-destructive hover:text-destructive"
+                                  aria-label={`Delete receipt of ${formatMoney(receipt.amount)}`}
+                                  onClick={() => setConfirm({ kind: 'deleteReceipt', receipt })}
+                                >
+                                  <Trash className="size-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {invoice.status === 'draft'
-                        ? 'Mark the invoice as sent to start recording receipts.'
-                        : 'No receipts yet.'}
-                    </p>
+                    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-7 text-center">
+                      <HandCoins className="size-8 text-muted-foreground" aria-hidden />
+                      <p className="text-sm font-medium">No receipts yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        {invoice.status === 'draft' ? 'Mark the invoice as sent to start recording receipts.' : 'Record money as the customer pays.'}
+                      </p>
+                    </div>
                   )}
                 </section>
-
-                <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-                  {canCancel ? (
-                    <Button variant="ghost" onClick={() => setConfirm({ kind: 'cancel' })}>
-                      <Ban className="size-4" />
-                      Cancel invoice
-                    </Button>
-                  ) : null}
-                  {invoice.status === 'draft' ? (
-                    <Button variant="outline" onClick={() => onEdit(invoice)}>
-                      <Pencil className="size-4" />
-                      Edit
-                    </Button>
-                  ) : null}
-                  <Button
-                    variant="outline"
-                    disabled={downloadPdf.isPending}
-                    onClick={() => downloadPdf.mutate({ id: invoice.id, invoiceNo: invoice.invoiceNo })}
-                  >
-                    <Download className="size-4" />
-                    {downloadPdf.isPending ? 'Preparing…' : 'Download PDF'}
-                  </Button>
-                  {invoice.status === 'draft' ? (
-                    <Button onClick={() => sendInvoice.mutate(invoice.id)} disabled={sendInvoice.isPending}>
-                      <Send className="size-4" />
-                      Mark as sent
-                    </Button>
-                  ) : null}
-                </div>
               </>
             )}
           </DialogBody>
+          <DialogFooter className="justify-between sm:justify-between">
+            <div>
+              {canCancel ? (
+                <Button variant="destructive" size="lg" onClick={() => setConfirm({ kind: 'cancel' })}>
+                  <Ban className="size-4" />
+                  Cancel invoice
+                </Button>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              {invoice?.status === 'draft' ? (
+                <Button variant="outline" size="lg" onClick={() => onEdit(invoice)}>
+                  <Pen className="size-4" />
+                  Edit
+                </Button>
+              ) : null}
+              {pdfButton}
+              {invoice?.status === 'draft' ? (
+                <Button size="lg" onClick={() => sendInvoice.mutate(invoice.id)} disabled={sendInvoice.isPending}>
+                  <Send className="size-4" />
+                  Mark as sent
+                </Button>
+              ) : canReceive ? (
+                <Button size="lg" onClick={() => setReceiving(true)}>
+                  Record receipt
+                </Button>
+              ) : null}
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {invoice ? (
+        <SettlementDialog
+          open={receiving && canReceive}
+          kind="receipt"
+          documentLabel={`${invoice.invoiceNo} · ${invoice.customerName}`}
+          total={invoice.totalAmount}
+          balance={invoice.balance}
+          dueDate={invoice.dueDate}
+          minDate={invoice.invoiceDate}
+          isSubmitting={recordReceipt.isPending}
+          onSubmit={(v) =>
+            recordReceipt.mutate(
+              {
+                id: invoice.id,
+                payload: { receiptDate: v.date, amount: v.amount, paymentMethodId: v.paymentMethodId, reference: v.reference, notes: v.notes },
+              },
+              { onSuccess: () => setReceiving(false) },
+            )
+          }
+          onClose={() => (startWithReceipt ? close() : setReceiving(false))}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={confirm !== null}
         onOpenChange={(open) => !open && setConfirm(null)}
+        icon={confirm?.kind === 'cancel' ? Ban : undefined}
         title={confirm?.kind === 'deleteReceipt' ? 'Delete receipt' : 'Cancel invoice'}
         description={
           confirm?.kind === 'deleteReceipt'
             ? `Delete the receipt of ${formatMoney(confirm.receipt.amount)}? The invoice balance goes back up.`
-            : 'Cancel this invoice? It keeps its number but no longer counts as owed.'
+            : `Cancel invoice ${invoice?.invoiceNo ?? ''}? It keeps its number but no longer counts as owed.`
         }
         confirmText={confirm?.kind === 'deleteReceipt' ? 'Delete' : 'Cancel invoice'}
         variant="destructive"

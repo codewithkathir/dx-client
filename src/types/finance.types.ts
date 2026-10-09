@@ -18,6 +18,9 @@ export interface Supplier {
   comments: string | null;
   createdAt: string;
   updatedAt: string;
+  /** List rows only. */
+  openBillCount?: number;
+  draftBillCount?: number;
 }
 
 export interface SupplierOption {
@@ -96,6 +99,8 @@ export interface BillListFilters {
   supplierId?: number;
   dateFrom?: string;
   dateTo?: string;
+  dueFrom?: string;
+  dueTo?: string;
   sortBy?: string;
   order?: 'asc' | 'desc';
 }
@@ -144,12 +149,17 @@ export interface ListResult<T> {
   meta: PaginationMeta;
 }
 
-export type CustomerOption = SupplierOption;
+export interface CustomerOption extends SupplierOption {
+  trn: string | null;
+  paymentTerms: string | null;
+}
 
 export interface Customer extends Supplier {
   trn: string | null;
   creditLimit: number | null;
   paymentTerms: string | null;
+  /** List rows only: unpaid balance of sent / part-paid invoices. */
+  outstanding?: number;
 }
 
 export type CustomerPayload = SupplierPayload & {

@@ -19,6 +19,9 @@ export interface Expense {
   supportFile: string | null;
   employeeStatus: EmployeeExpenseStatus;
   adminStatus: AdminExpenseStatus;
+  /** Admin's note to the employee on approval or rejection. */
+  reviewNote?: string | null;
+  reviewedAt?: string | null;
   /** Reimbursement bill created when the expense was approved. */
   reimbursement?: ExpenseReimbursement | null;
   createdAt: string;
@@ -31,9 +34,22 @@ export interface ExpenseListFilters {
   search?: string;
   sortBy?: string;
   order?: 'asc' | 'desc';
+  stage?: ExpenseStage;
   categoryId?: number;
   dateFrom?: string;
   dateTo?: string;
+}
+
+export interface StageTotals {
+  count: number;
+  amount: number;
+}
+
+/** Employee home: claims per stage, what is still owed back, and what was paid this year. */
+export interface EmployeeExpenseSummary {
+  stages: Record<ExpenseStage, StageTotals>;
+  toBeReimbursed: StageTotals;
+  paidThisYear: number;
 }
 
 export interface AdminExpenseListFilters {
@@ -44,10 +60,14 @@ export interface AdminExpenseListFilters {
   order?: 'asc' | 'desc';
   employeeId?: number;
   status?: AdminExpenseStatus;
+  /** Combined stage: pending (awaiting approval), approved (awaiting payment), paid, rejected. */
+  stage?: ExpenseStage;
   categoryId?: number;
   dateFrom?: string;
   dateTo?: string;
 }
+
+export type ExpenseStage = 'pending' | 'approved' | 'paid' | 'rejected';
 
 export interface AdminExpenseSummary {
   totalCount: number;

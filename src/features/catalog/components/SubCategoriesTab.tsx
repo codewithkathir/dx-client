@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { FolderTree, Pen, Plus, Search, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { TablePagination } from '@/components/tables/TablePagination';
@@ -13,23 +14,13 @@ import { CATALOG_STATUS_OPTIONS } from '@/features/catalog/constants/catalog.con
 import { useCatalogMutations } from '@/features/catalog/hooks/useCatalogMutations';
 import { useCategoryOptions, useSubCategories } from '@/features/catalog/hooks/useCatalogQueries';
 import type { SubCategoryFormValues } from '@/features/catalog/schemas/sub-category.schema';
-import { UI_PANEL } from '@/constants/ui.constants';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
 import {
   Table,
   TableBody,
@@ -86,66 +77,64 @@ export function SubCategoriesTab() {
   };
 
   return (
-    <div className="space-y-4">
-      <Button size="sm" onClick={() => setDialogMode('create')}>
-        <Plus className="mr-2 size-4" />
-        Add sub category
-      </Button>
-
-      <Card className={UI_PANEL.filter}>
-        <div className="grid gap-3 md:grid-cols-4">
-          <div className="relative md:col-span-2">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search sub categories…"
-              className="pl-9"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-          </div>
-          <Select
-            value={filters.categoryId ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                categoryId: e.target.value ? Number(e.target.value) : undefined,
-                page: 1,
-              }))
-            }
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={filters.status ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                status: e.target.value as CatalogStatus | '',
-                page: 1,
-              }))
-            }
-          >
-            {CATALOG_STATUS_OPTIONS.map((o) => (
-              <option key={o.value || 'all'} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
+    <div>
+      <div className="flex flex-wrap items-center gap-3 p-4">
+        <div className="relative min-w-0 max-w-[420px] flex-[1_1_260px]">
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            type="search"
+            aria-label="Search sub categories"
+            placeholder="Search sub categories…"
+            className="pl-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
         </div>
-        <div className="mt-3 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`mr-2 size-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
-      </Card>
+        <Select
+          className="w-auto flex-[0_1_180px]"
+          value={filters.categoryId ?? ''}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              categoryId: e.target.value ? Number(e.target.value) : undefined,
+              page: 1,
+            }))
+          }
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </Select>
+        <Select
+          className="w-auto flex-[0_1_180px]"
+          value={filters.status ?? ''}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              status: e.target.value as CatalogStatus | '',
+              page: 1,
+            }))
+          }
+        >
+          {CATALOG_STATUS_OPTIONS.map((o) => (
+            <option key={o.value || 'all'} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+        <Button className="ml-auto" onClick={() => setDialogMode('create')}>
+          <Plus className="size-4" />
+          Add sub category
+        </Button>
+      </div>
 
-      <Card className={cn(UI_PANEL.table, 'gap-0 py-0')}>
+      <div className="border-t border-border">
         {isError ? (
           <div className="p-6">
             <ErrorPanel
@@ -159,18 +148,17 @@ export function SubCategoriesTab() {
             />
           </div>
         ) : isLoading ? (
-          <div className="space-y-3 p-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
+          <TableRowsSkeleton rows={5} />
         ) : items.length === 0 ? (
           <div className="p-8">
-            <EmptyState title="No sub categories" description="Add a sub category under a main category." />
+            <EmptyState
+              title="No sub categories"
+              description="Add a sub category under a main category."
+            />
           </div>
         ) : (
           <>
-            <Table>
+            <Table className="animate-in fade-in-0 duration-300">
               <TableHeader>
                 <TableRow>
                   <TableHead>Main category</TableHead>
@@ -199,7 +187,7 @@ export function SubCategoriesTab() {
                             setDialogMode('edit');
                           }}
                         >
-                          <Pencil className="size-4" />
+                          <Pen className="size-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -209,7 +197,7 @@ export function SubCategoriesTab() {
                             setDialogMode('delete');
                           }}
                         >
-                          <Trash2 className="size-4 text-destructive" />
+                          <Trash className="size-4 text-destructive" />
                         </Button>
                       </div>
                     </TableCell>
@@ -225,14 +213,19 @@ export function SubCategoriesTab() {
             ) : null}
           </>
         )}
-      </Card>
+      </div>
 
-      <Dialog open={dialogMode === 'create' || dialogMode === 'edit'} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent onClose={closeDialog}>
-          <DialogHeader>
-            <DialogTitle>{dialogMode === 'create' ? 'Add sub category' : 'Edit sub category'}</DialogTitle>
-            <DialogDescription>Child of a main category.</DialogDescription>
-          </DialogHeader>
+      <Dialog
+        open={dialogMode === 'create' || dialogMode === 'edit'}
+        onOpenChange={(o) => !o && closeDialog()}
+      >
+        <DialogContent className="max-w-[420px]" onClose={closeDialog}>
+          <DialogIconHeader
+            icon={FolderTree}
+            eyebrow="Level 2"
+            title={dialogMode === 'create' ? 'Add sub category' : 'Edit sub category'}
+            description="Add a sub category under a main category."
+          />
           <DialogBody>
             <SubCategoryForm
               subCategory={active ?? undefined}

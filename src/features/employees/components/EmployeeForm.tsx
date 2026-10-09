@@ -191,8 +191,8 @@ export function EmployeeForm({
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create employee' : 'Save changes'}
+        <Button loading={isSubmitting} type="submit" disabled={isSubmitting}>
+          {mode === 'create' ? 'Create employee' : 'Save changes'}
         </Button>
       </div>
     </form>

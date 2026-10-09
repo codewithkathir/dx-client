@@ -1,1 +1,2 @@
-// Dashboard feature public API — export components, hooks, and services as they are implemented.
+export { DashboardPageContent } from '@/features/dashboard/components/DashboardPageContent';
+export { useDashboardAlerts, useDashboardOverview, useGlobalSearch } from '@/features/dashboard/hooks/useDashboard';

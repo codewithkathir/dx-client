@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, KeyRound, Lock } from 'lucide-react';
 
 import { FormField } from '@/components/forms/FormField';
+import { PasswordStrength } from '@/components/forms/PasswordStrength';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { AuthPortal } from '@/constants/auth.constants';
@@ -31,7 +31,7 @@ export function ResetPasswordForm({ portal }: ResetPasswordFormProps) {
   const literals = portal === AUTH_PORTAL.ADMIN ? AUTH_LITERALS.ADMIN : AUTH_LITERALS.USER;
   const loginHref = portal === AUTH_PORTAL.ADMIN ? ADMIN_ROUTES.LOGIN : USER_ROUTES.LOGIN;
 
-  const { register, handleSubmit, formState, setValue } = useForm<ResetPasswordFormValues>({
+  const { register, handleSubmit, formState, setValue, watch } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       token: tokenFromUrl,
@@ -50,64 +50,49 @@ export function ResetPasswordForm({ portal }: ResetPasswordFormProps) {
 
   const onSubmit = handleSubmit((values) => mutation.mutate(values));
 
+  const isUser = portal === AUTH_PORTAL.USER;
+  const inputClass = isUser ? 'h-[52px] rounded-[14px] text-base' : 'h-11';
+  const newPassword = watch('newPassword');
+
   return (
-    <form onSubmit={onSubmit} className="space-y-6" noValidate>
+    <form onSubmit={onSubmit} className={isUser ? 'flex flex-1 flex-col gap-[18px]' : 'flex flex-col gap-5'} noValidate>
       {!tokenFromUrl ? (
-        <FormField label="Reset token" htmlFor="token" required error={formState.errors.token?.message}>
-          <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input id="token" className="pl-9" {...register('token')} />
-          </div>
+        <FormField label="Reset code" htmlFor="token" required error={formState.errors.token?.message}>
+          <Input id="token" className={inputClass} {...register('token')} />
         </FormField>
       ) : (
         <input type="hidden" {...register('token')} />
       )}
 
-      <FormField
-        label="New password"
-        htmlFor="newPassword"
-        required
-        error={formState.errors.newPassword?.message}
-      >
-        <div className="relative">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="newPassword"
-            type="password"
-            autoComplete="new-password"
-            className="pl-9"
-            {...register('newPassword')}
-          />
-        </div>
+      <FormField label="New password" htmlFor="newPassword" required error={formState.errors.newPassword?.message}>
+        <Input id="newPassword" type="password" autoComplete="new-password" className={inputClass} {...register('newPassword')} />
+        <PasswordStrength value={newPassword ?? ''} />
       </FormField>
 
       <FormField
-        label="Confirm password"
+        label="Confirm new password"
         htmlFor="confirmPassword"
         required
         error={formState.errors.confirmPassword?.message}
       >
-        <div className="relative">
-          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            className="pl-9"
-            {...register('confirmPassword')}
-          />
-        </div>
+        <Input
+          id="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          className={inputClass}
+          {...register('confirmPassword')}
+        />
       </FormField>
 
-      <Button type="submit" className="w-full" disabled={mutation.isPending}>
+      <Button
+        loading={mutation.isPending}
+        type="submit"
+        className={isUser ? 'mt-auto h-[52px] w-full rounded-[14px] text-base font-semibold' : 'h-11 w-full text-[15px]'}
+      >
         {literals.SUBMIT_RESET}
       </Button>
 
-      <Link
-        href={loginHref}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
+      <Link href={loginHref} className="text-center text-sm font-medium text-primary hover:underline">
         {literals.BACK_TO_LOGIN}
       </Link>
     </form>

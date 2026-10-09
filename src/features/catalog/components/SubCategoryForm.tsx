@@ -4,17 +4,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { FormField } from '@/components/forms/FormField';
+import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CATALOG_STATUS_OPTIONS } from '@/features/catalog/constants/catalog.constants';
 import {
   subCategoryFormSchema,
   type SubCategoryFormValues,
 } from '@/features/catalog/schemas/sub-category.schema';
 import { useCategoryOptions } from '@/features/catalog/hooks/useCatalogQueries';
 import type { SubCategory } from '@/types/catalog.types';
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+] as const;
 
 interface SubCategoryFormProps {
   subCategory?: SubCategory;
@@ -71,21 +76,20 @@ export function SubCategoryForm({
       </FormField>
 
       <FormField label="Status" htmlFor="subCatStatus" required error={formState.errors.status?.message}>
-        <Select id="subCatStatus" {...register('status')}>
-          {CATALOG_STATUS_OPTIONS.filter((o) => o.value).map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </Select>
+        <SegmentedRadio
+          id="subCatStatus"
+          label="Status"
+          registration={register('status')}
+          options={STATUS_OPTIONS}
+        />
       </FormField>
 
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : subCategory ? 'Update' : 'Create'}
+        <Button loading={isSubmitting} type="submit" disabled={isSubmitting}>
+          {'Save sub category'}
         </Button>
       </div>
     </form>

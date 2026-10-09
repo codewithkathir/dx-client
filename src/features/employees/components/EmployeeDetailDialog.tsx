@@ -1,18 +1,11 @@
 'use client';
 
-import { Pencil } from 'lucide-react';
+import { IdCard, Pen } from 'lucide-react';
 
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar';
 import { cn } from '@/lib/utils';
 import type { Employee } from '@/types/employee.types';
@@ -51,11 +44,8 @@ export function EmployeeDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="max-w-2xl" onClose={onClose}>
-        <DialogHeader>
-          <DialogTitle>Employee details</DialogTitle>
-          <DialogDescription>View profile and document information.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-[720px]" onClose={onClose}>
+        <DialogIconHeader icon={IdCard} title="Employee details" description="View profile and document information." />
         <DialogBody>
           <div className="mb-6 flex items-center gap-4">
             <EmployeeAvatar
@@ -99,7 +89,7 @@ export function EmployeeDetailDialog({
             Close
           </Button>
           <Button type="button" onClick={() => onEdit(employee)}>
-            <Pencil className="size-4" />
+            <Pen className="size-4" />
             Edit
           </Button>
         </DialogFooter>

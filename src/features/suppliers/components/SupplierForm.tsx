@@ -4,15 +4,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { FormField } from '@/components/forms/FormField';
+import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
   supplierSchema,
   type SupplierFormValues,
 } from '@/features/suppliers/schemas/supplier.schema';
 import type { Supplier, SupplierPayload } from '@/types/finance.types';
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+] as const;
 
 interface SupplierFormProps {
   supplier?: Supplier;
@@ -62,7 +67,7 @@ export function SupplierForm({ supplier, isSubmitting, onSubmit, onCancel }: Sup
         <FormField label="Company name" htmlFor="companyName" required error={errors.companyName?.message} className="sm:col-span-2">
           <Input id="companyName" {...register('companyName')} />
         </FormField>
-        <FormField label="Contact person" htmlFor="contactName1" error={errors.contactName1?.message}>
+        <FormField label="Contact name" htmlFor="contactName1" error={errors.contactName1?.message}>
           <Input id="contactName1" {...register('contactName1')} />
         </FormField>
         <FormField label="Email" htmlFor="email" error={errors.email?.message}>
@@ -84,21 +89,23 @@ export function SupplierForm({ supplier, isSubmitting, onSubmit, onCancel }: Sup
           <Textarea id="companyAddress" rows={2} {...register('companyAddress')} />
         </FormField>
         <FormField label="Status" htmlFor="status" required error={errors.status?.message}>
-          <Select id="status" {...register('status')}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </Select>
+          <SegmentedRadio
+          id="status"
+          label="Status"
+          registration={register('status')}
+          options={STATUS_OPTIONS}
+        />
         </FormField>
         <FormField label="Comments" htmlFor="comments" error={errors.comments?.message} className="sm:col-span-2">
           <Textarea id="comments" rows={2} {...register('comments')} />
         </FormField>
       </div>
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button type="button" variant="outline" size="lg" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving…' : supplier ? 'Save changes' : 'Add supplier'}
+        <Button loading={isSubmitting} size="lg" type="submit" disabled={isSubmitting}>
+          {supplier ? 'Save changes' : 'Save supplier'}
         </Button>
       </div>
     </form>

@@ -3,83 +3,85 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, Receipt, User } from 'lucide-react';
+import { House, Package, Plus, Receipt, User } from 'lucide-react';
 
-import { LayoutUserMenu } from '@/components/shared/LayoutUserMenu';
-import { AUTH_PORTAL } from '@/constants/auth.constants';
+import { LoadingBar } from '@/components/feedback/LoadingBar';
 import { USER_ROUTES } from '@/constants/routes.constants';
-import { useLogout } from '@/features/auth/hooks/useLogout';
 import { cn } from '@/lib/utils';
 
-const USER_NAV = [
-  { href: USER_ROUTES.HOME, label: 'Home', icon: Home },
+const TABS = [
+  { href: USER_ROUTES.HOME, label: 'Home', icon: House },
   { href: USER_ROUTES.EXPENSES, label: 'Expenses', icon: Receipt },
+  { href: USER_ROUTES.EXPENSE_NEW, label: 'New expense', icon: Plus, primary: true },
   { href: USER_ROUTES.ORDERS, label: 'Orders', icon: Package },
   { href: USER_ROUTES.PROFILE, label: 'Profile', icon: User },
 ] as const;
+
+/** Pushed screens (new / detail / edit) bring their own header and action bar instead of the tabs. */
+function isPushedScreen(pathname: string): boolean {
+  return pathname.startsWith(`${USER_ROUTES.EXPENSES}/`);
+}
 
 interface UserLayoutProps {
   children: React.ReactNode;
 }
 
+/** Employee app: a phone-width column with a bottom tab bar (design "Employee · Mobile"). */
 export function UserLayout({ children }: UserLayoutProps) {
   const pathname = usePathname();
-  const logoutMutation = useLogout(AUTH_PORTAL.USER);
   const mainRef = useRef<HTMLElement>(null);
+  const showTabs = !isPushedScreen(pathname);
 
-  // Only <main> scrolls, so start each page at the top of it.
+  // Only <main> scrolls, so start each screen at the top of it.
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
   }, [pathname]);
 
-  // Fixed frame: header (and the mobile bottom nav) stay put; only <main> scrolls.
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
-      <header className="shrink-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
-          <span className="font-semibold text-sidebar-foreground">DX Employee</span>
-          <LayoutUserMenu
-            profileHref={USER_ROUTES.PROFILE}
-            settingsHref={USER_ROUTES.PROFILE}
-            signOutDescription="Are you sure you want to sign out of your account?"
-            signOutPending={logoutMutation.isPending}
-            onConfirmSignOut={() => logoutMutation.mutate()}
-          />
+    <div className="flex h-dvh justify-center bg-[#e9edf4]">
+      <div className="flex h-full w-full max-w-[480px] flex-col overflow-hidden bg-background shadow-[0_0_0_1px_var(--border)] min-[481px]:shadow-md">
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <LoadingBar />
+          <main ref={mainRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {/* Keyed by route so each screen fades in on navigation. */}
+            <div key={pathname} className="page-in flex min-h-full flex-1 flex-col">
+              {children}
+            </div>
+          </main>
         </div>
-      </header>
 
-      <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-background">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6">{children}</div>
-      </main>
-
-      <nav className="shrink-0 border-t border-sidebar-border bg-sidebar md:hidden">
-        <div className="mx-auto flex max-w-5xl justify-around py-2">
-          {USER_NAV.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'flex cursor-pointer flex-col items-center gap-1 rounded-md px-3 py-1 text-xs transition-colors',
-                  isActive
-                    ? 'bg-sidebar-primary font-medium text-sidebar-primary-foreground'
-                    : 'text-sidebar-foreground/80 hover:text-sidebar-foreground',
-                )}
-              >
-                <Icon
+        {showTabs ? (
+          <nav aria-label="Main" className="flex shrink-0 items-center border-t border-border bg-card px-2 pt-1 pb-[max(12px,env(safe-area-inset-bottom))]">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              if ('primary' in tab) {
+                return (
+                  <Link key={tab.href} href={tab.href} aria-label={tab.label} className="flex h-14 flex-1 items-center justify-center">
+                    <span className="-mt-5 flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_4px_12px_-2px_rgba(31,79,209,.45)]">
+                      <Icon className="size-[22px]" strokeWidth={2.5} />
+                    </span>
+                  </Link>
+                );
+              }
+              const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'size-5',
-                    isActive ? 'text-sidebar-primary-foreground' : 'text-sidebar-foreground/80',
+                    'flex h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                    active ? 'text-primary' : 'text-muted-foreground',
                   )}
-                  strokeWidth={1.75}
-                />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                >
+                  <Icon className="size-[22px]" />
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
+      </div>
     </div>
   );
 }

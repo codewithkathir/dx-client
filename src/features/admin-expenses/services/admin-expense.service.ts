@@ -21,6 +21,7 @@ function buildListParams(
   if (filters.sortBy) params.sortBy = filters.sortBy;
   if (filters.employeeId) params.employeeId = filters.employeeId;
   if (filters.status) params.status = filters.status;
+  if (filters.stage) params.stage = filters.stage;
   if (filters.categoryId) params.categoryId = filters.categoryId;
   if (filters.dateFrom) params.dateFrom = filters.dateFrom;
   if (filters.dateTo) params.dateTo = filters.dateTo;
@@ -60,13 +61,14 @@ class AdminExpenseService extends BaseService {
   }
 
   /** Approving creates the employee's reimbursement bill in Payables. */
-  approve(id: number): Promise<Expense> {
-    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id));
+  approve(id: number, note?: string | null): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id), note ? { note } : {});
   }
 
   /** Rejecting also cancels an unpaid reimbursement bill. */
-  reject(id: number): Promise<Expense> {
-    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.REJECT(id));
+  /** The note is shown to the employee and is required. */
+  reject(id: number, note: string): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.REJECT(id), { note });
   }
 
   remove(id: number): Promise<void> {

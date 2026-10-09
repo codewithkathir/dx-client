@@ -16,5 +16,5 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  return <Badge variant={VARIANT_MAP[status]}>{EMPLOYEE_STATUS_LABELS[status]}</Badge>;
+  return <Badge variant={VARIANT_MAP[status]} dot>{EMPLOYEE_STATUS_LABELS[status]}</Badge>;
 }

@@ -1,5 +1,5 @@
-import { ExpensesPageContent } from '@/features/expenses/components/ExpensesPageContent';
+import { MyExpensesContent } from '@/features/expenses/components/mobile/MyExpensesContent';
 
 export default function UserExpensesPage() {
-  return <ExpensesPageContent />;
+  return <MyExpensesContent />;
 }

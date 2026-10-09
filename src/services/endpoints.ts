@@ -41,6 +41,7 @@ export const API_ENDPOINTS = {
   },
   EMPLOYEE_EXPENSES: {
     LIST: `${V1}/employee/expenses`,
+    SUMMARY: `${V1}/employee/expenses/summary`,
     DETAIL: (id: string | number) => `${V1}/employee/expenses/${id}`,
     SUPPORT_FILE: (id: string | number) => `${V1}/employee/expenses/${id}/support-file`,
   },
@@ -116,6 +117,11 @@ export const API_ENDPOINTS = {
     RECEIPTS: (id: string | number) => `${V1}/admin/receivables/${id}/receipts`,
     RECEIPT: (id: string | number, receiptId: string | number) =>
       `${V1}/admin/receivables/${id}/receipts/${receiptId}`,
+  },
+  DASHBOARD: {
+    OVERVIEW: `${V1}/admin/dashboard`,
+    ALERTS: `${V1}/admin/dashboard/alerts`,
+    SEARCH: `${V1}/admin/search`,
   },
   HEALTH: '/health',
 } as const;

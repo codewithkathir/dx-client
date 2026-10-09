@@ -13,7 +13,7 @@ export function Table({ className, ...props }: React.HTMLAttributes<HTMLTableEle
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn('[&_tr]:border-b [&_tr]:border-border [&_tr]:bg-muted/40', className)}
+      className={cn('[&_tr]:border-b [&_tr]:border-border [&_tr]:bg-muted', className)}
       {...props}
     />
   );
@@ -39,7 +39,7 @@ export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTa
   return (
     <th
       className={cn(
-        'h-11 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground',
+        'h-11 px-3 text-left align-middle text-xs font-semibold whitespace-nowrap uppercase tracking-wide text-muted-foreground',
         className,
       )}
       {...props}

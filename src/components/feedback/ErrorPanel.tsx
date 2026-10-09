@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,7 @@ export function ErrorPanel({
   return (
     <Card className={cn('border-destructive/30', className)}>
       <CardHeader className="flex flex-row items-start gap-3">
-        <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
+        <CircleAlert className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
         <div className="space-y-1">
           <CardTitle className="text-base">{title}</CardTitle>
           {message ? <CardDescription>{message}</CardDescription> : null}

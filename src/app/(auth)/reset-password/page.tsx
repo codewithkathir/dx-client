@@ -6,6 +6,7 @@ import { AUTH_LITERALS } from '@/features/auth/literals/auth.literal';
 export default function EmployeeResetPasswordPage() {
   return (
     <EmployeeAuthLayout
+      variant="plain"
       title={AUTH_LITERALS.USER.RESET_PASSWORD_TITLE}
       subtitle={AUTH_LITERALS.USER.RESET_PASSWORD_SUBTITLE}
     >

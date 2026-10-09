@@ -1,99 +1,80 @@
 /**
- * DX brand theme
- * Primary: #FF5733 | Secondary: #1F2D3D | Text: #FFFFFF
+ * DX Enterprise theme — "Ledger Blue" (light).
+ * Source: the DX Enterprise design system (tokens.css). White cards on a cool
+ * grey ground, ink text, one blue for action, green only for settled money.
  */
 
 :root {
-  /* Brand source tokens (hex) */
-  --color-brand-primary: #ff5733;
-  --color-brand-primary-hover: #ff6f4d;
-  --color-brand-secondary: #1f2d3d;
-  --color-brand-secondary-muted: #2a3d52;
-  --color-brand-text: #ffffff;
+  /* Brand */
+  --brand-blue: #1f4fd1;
+  --brand-blue-hover: #1a43b4;
+  --brand-blue-50: #eaf0fe;
+  --brand-green: #2ee59d;
+  --brand-green-600: #0e9f6e;
+  --brand-ink: #0f1c2e;
 
-  /* Brand OKLCH (for Tailwind / shadcn) */
-  --brand-primary: oklch(0.68 0.211 20.5);
-  --brand-primary-hover: oklch(0.713 0.189 21.4);
-  --brand-secondary: oklch(0.293 0.025 223.5);
-  --brand-secondary-muted: oklch(0.355 0.032 222.6);
-  --brand-text: oklch(1 0 0);
+  /* Surfaces */
+  --background: #f5f7fb;
+  --foreground: var(--brand-ink);
+  --card: #ffffff;
+  --card-foreground: var(--brand-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-ink);
 
-  /* App surfaces */
-  --background: var(--brand-secondary);
-  --foreground: var(--brand-text);
-  --card: var(--brand-secondary-muted);
-  --card-foreground: var(--brand-text);
-  --popover: var(--brand-secondary-muted);
-  --popover-foreground: var(--brand-text);
+  /* Actions & chrome */
+  --primary: var(--brand-blue);
+  --primary-hover: var(--brand-blue-hover);
+  --primary-foreground: #ffffff;
+  --secondary: var(--brand-blue-50);
+  --secondary-foreground: var(--brand-blue-hover);
+  --muted: #eef2f7;
+  --muted-foreground: #556275;
+  --accent: var(--brand-blue-50);
+  --accent-foreground: var(--brand-blue-hover);
+  --destructive: #c8322a;
+  --destructive-hover: #a92821;
+  --border: #dfe4ec;
+  --input: #ffffff;
+  /* Form controls are outlined darker than hairlines so fields are easy to find (3.6:1). */
+  --input-border: #7a879c;
+  --ring: var(--brand-blue);
 
-  /* Actions & UI chrome */
-  --primary: var(--brand-primary);
-  --primary-foreground: var(--brand-text);
-  --secondary: var(--brand-secondary-muted);
-  --secondary-foreground: var(--brand-text);
-  --muted: var(--brand-secondary-muted);
-  --muted-foreground: color-mix(in oklch, var(--brand-text) 72%, transparent);
-  --accent: var(--brand-secondary-muted);
-  --accent-foreground: var(--brand-text);
+  /* Status pills: pale fill + its own ink (4.5:1+) */
+  --status-success: #e3f5ec;
+  --status-success-ink: #067a52;
+  --status-warning: #fdf3dc;
+  --status-warning-ink: #9a5b00;
+  --status-danger: #fdecea;
+  --status-danger-ink: var(--destructive);
+  --status-info: var(--brand-blue-50);
+  --status-info-ink: var(--brand-blue-hover);
+  --status-neutral: #eef2f7;
+  --status-neutral-ink: #556275;
 
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: color-mix(in oklch, var(--brand-text) 18%, transparent);
-  --input: var(--brand-secondary-muted);
-  --ring: var(--brand-primary);
-
-  --chart-1: var(--brand-primary);
-  --chart-2: var(--brand-secondary-muted);
-  --chart-3: oklch(0.45 0.03 223.5);
-  --chart-4: oklch(0.75 0.12 20.5);
-  --chart-5: color-mix(in oklch, var(--brand-text) 55%, transparent);
+  /* Charts: blue = money out, green = money in */
+  --chart-1: var(--brand-blue);
+  --chart-2: var(--brand-green-600);
+  --chart-3: #8aa4f0;
+  --chart-4: #f2a33a;
+  --chart-5: #98a3b3;
 
   --radius: 0.625rem;
 
-  /* Sidebar / topbar */
-  --sidebar: var(--brand-secondary);
-  --sidebar-foreground: var(--brand-text);
-  --sidebar-primary: var(--brand-primary);
-  --sidebar-primary-foreground: var(--brand-text);
-  --sidebar-accent: var(--brand-secondary-muted);
-  --sidebar-accent-foreground: var(--brand-text);
-  --sidebar-border: color-mix(in oklch, var(--brand-text) 18%, transparent);
-  --sidebar-ring: var(--brand-primary);
-}
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(15, 28, 46, 0.06), 0 1px 3px rgba(15, 28, 46, 0.08);
+  --shadow-md: 0 4px 12px -2px rgba(15, 28, 46, 0.1);
+  --shadow-2xl: 0 24px 48px -12px rgba(15, 28, 46, 0.25);
+  --shadow-dialog: 0 0 0 1px rgba(15, 28, 46, 0.06), 0 32px 64px -16px rgba(15, 28, 46, 0.38),
+    0 12px 24px -12px rgba(15, 28, 46, 0.18);
+  --scrim: rgba(15, 28, 46, 0.42);
 
-.dark {
-  --background: var(--brand-secondary);
-  --foreground: var(--brand-text);
-  --card: var(--brand-secondary-muted);
-  --card-foreground: var(--brand-text);
-  --popover: var(--brand-secondary-muted);
-  --popover-foreground: var(--brand-text);
-
-  --primary: var(--brand-primary);
-  --primary-foreground: var(--brand-text);
-  --secondary: var(--brand-secondary-muted);
-  --secondary-foreground: var(--brand-text);
-  --muted: var(--brand-secondary-muted);
-  --muted-foreground: color-mix(in oklch, var(--brand-text) 72%, transparent);
-  --accent: var(--brand-secondary-muted);
-  --accent-foreground: var(--brand-text);
-
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: color-mix(in oklch, var(--brand-text) 18%, transparent);
-  --input: var(--brand-secondary-muted);
-  --ring: var(--brand-primary);
-
-  --chart-1: var(--brand-primary);
-  --chart-2: var(--brand-secondary-muted);
-  --chart-3: oklch(0.45 0.03 223.5);
-  --chart-4: oklch(0.55 0.15 20.5);
-  --chart-5: color-mix(in oklch, var(--brand-text) 55%, transparent);
-
-  --sidebar: var(--brand-secondary);
-  --sidebar-foreground: var(--brand-text);
-  --sidebar-primary: var(--brand-primary);
-  --sidebar-primary-foreground: var(--brand-text);
-  --sidebar-accent: var(--brand-secondary-muted);
-  --sidebar-accent-foreground: var(--brand-text);
-  --sidebar-border: color-mix(in oklch, var(--brand-text) 18%, transparent);
-  --sidebar-ring: var(--brand-primary);
+  /* Sidebar / header */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #33415a;
+  --sidebar-primary: var(--brand-blue);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--brand-blue-50);
+  --sidebar-accent-foreground: var(--brand-blue-hover);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand-blue);
 }

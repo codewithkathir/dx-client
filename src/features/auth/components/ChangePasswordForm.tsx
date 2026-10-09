@@ -17,9 +17,11 @@ import {
 
 interface ChangePasswordFormProps {
   portal?: AuthPortal;
+  /** Called after the password changed (e.g. to close a sheet). */
+  onSuccess?: () => void;
 }
 
-export function ChangePasswordForm({ portal = AUTH_PORTAL.ADMIN }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ portal = AUTH_PORTAL.ADMIN, onSuccess }: ChangePasswordFormProps) {
   const { register, handleSubmit, formState, reset } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
@@ -33,7 +35,10 @@ export function ChangePasswordForm({ portal = AUTH_PORTAL.ADMIN }: ChangePasswor
 
   const onSubmit = handleSubmit((values) => {
     mutation.mutate(values, {
-      onSuccess: () => reset(),
+      onSuccess: () => {
+        reset();
+        onSuccess?.();
+      },
     });
   });
 

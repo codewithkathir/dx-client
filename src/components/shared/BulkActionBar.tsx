@@ -28,36 +28,17 @@ export function BulkActionBar({
       role="region"
       aria-label="Bulk actions"
       className={cn(
-        'flex flex-col gap-3 border-b border-border bg-muted/30 px-4 py-3',
-        'sm:flex-row sm:items-center sm:justify-between',
+        'mx-4 mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[#c9d6f7] bg-brand-blue-50 py-2.5 pr-3 pl-4',
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-semibold tabular-nums text-primary-foreground"
-          aria-hidden
-        >
-          {count}
-        </span>
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            {count} {label} selected
-          </p>
-          <p className="text-xs text-muted-foreground">Apply a bulk action or clear selection</p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+      <span className="text-sm font-semibold text-brand-blue-hover">
+        {count} {label} selected
+      </span>
+      <span className="text-[13px] text-[#33415a] max-sm:hidden">Apply a bulk action or clear selection</span>
+      <div className="ml-auto flex flex-wrap items-center gap-2">
         {children}
-        <span className="mx-1 hidden h-6 w-px bg-border sm:inline" aria-hidden />
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground"
-          onClick={onClear}
-        >
+        <Button type="button" size="sm" variant="ghost" onClick={onClear}>
           <X className="size-4" />
           Clear
         </Button>

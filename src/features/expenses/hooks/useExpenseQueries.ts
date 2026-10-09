@@ -15,6 +15,13 @@ export function useExpenses(filters: ExpenseListFilters) {
   });
 }
 
+export function useExpenseSummary() {
+  return useQuery({
+    queryKey: queryKeys.expenses.summary,
+    queryFn: () => expenseService.summary(),
+  });
+}
+
 export function useExpense(id: number | undefined) {
   return useQuery({
     queryKey: queryKeys.expenses.detail(id ?? 0),

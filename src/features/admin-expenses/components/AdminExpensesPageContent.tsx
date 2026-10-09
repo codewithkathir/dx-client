@@ -1,584 +1,353 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  CheckCircle2,
-  Eye,
-  RefreshCw,
-  Search,
-  Trash2,
-  XCircle,
-} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Check, CircleCheck, CircleX, Clock4, Download, Eye, Paperclip, Receipt, Search, X } from 'lucide-react';
 
-import { UI_PANEL } from '@/constants/ui.constants';
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { cn } from '@/lib/utils';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DateRangePicker } from '@/components/shared/DateRangePicker';
+import { StatCard, StatCardsSkeleton } from '@/components/shared/MoneySummaryCards';
 import { PageHeader } from '@/components/shared/PageHeader';
-import {
-  ExpenseStageBadge,
-  getExpenseStage,
-} from '@/features/expenses/components/ExpenseStageBadge';
-import { AdminExpenseSummaryCards } from '@/features/admin-expenses/components/AdminExpenseSummaryCards';
-import {
-  ADMIN_EXPENSE_DEFAULT_PAGE_SIZE,
-  ADMIN_EXPENSE_STATUS_OPTIONS,
-} from '@/features/admin-expenses/constants/admin-expense.constants';
-import { useAdminExpenseMutations } from '@/features/admin-expenses/hooks/useAdminExpenseMutations';
-import {
-  useAdminCategoryDropdown,
-  useAdminEmployeeOptions,
-  useAdminExpenseSummary,
-  useAdminExpenses,
-  useAdminPaymentMethodDropdown,
-  useAdminWhomDropdown,
-} from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
-import { useAdminSubCategoryLabelMap } from '@/features/admin-expenses/hooks/useAdminSubCategoryLabelMap';
 import { TablePagination } from '@/components/tables/TablePagination';
-import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
-import {
-  formatExpenseAmount,
-  formatExpenseDate,
-  isImageSupportFile,
-} from '@/features/expenses/utils/expense.utils';
-import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
-import { API_ENDPOINTS } from '@/services/endpoints';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
+import { ADMIN_ROUTES } from '@/constants/routes.constants';
+import { ExpenseDecisionDialogs, type ExpenseDecision } from '@/features/admin-expenses/components/ExpenseDecisionDialogs';
+import { ExpenseDetailDialog } from '@/features/admin-expenses/components/ExpenseDetailDialog';
+import { ADMIN_EXPENSE_DEFAULT_PAGE_SIZE } from '@/features/admin-expenses/constants/admin-expense.constants';
+import { useAdminExpenseMutations } from '@/features/admin-expenses/hooks/useAdminExpenseMutations';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  useAdminExpense,
+  useAdminExpenseSummary,
+  useAdminExpenses,
+} from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
+import { useExpenseLookups } from '@/features/admin-expenses/hooks/useExpenseLookups';
+import { adminExpenseService } from '@/features/admin-expenses/services/admin-expense.service';
+import { canApprove, canReject } from '@/features/admin-expenses/utils/expense-decisions';
+import { ExpenseStageBadge, getExpenseStage } from '@/features/expenses/components/ExpenseStageBadge';
+import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { useDebounce } from '@/hooks/useDebounce';
-import type {
-  AdminExpenseListFilters,
-  AdminExpenseStatus,
-  AdminExpenseSummaryFilters,
-  Expense,
-} from '@/types/expense.types';
+import type { AdminExpenseListFilters, AdminExpenseSummaryFilters, Expense, ExpenseStage } from '@/types/expense.types';
+import { downloadCsv } from '@/utils/csv.utils';
+import { formatMoney } from '@/utils/money.utils';
 
-type DialogMode = 'view' | 'delete' | null;
-type Decision = { expense: Expense; action: 'approve' | 'reject' };
+const STAGE_OPTIONS: Array<{ value: ExpenseStage | ''; label: string }> = [
+  { value: '', label: 'All statuses' },
+  { value: 'pending', label: 'Awaiting approval' },
+  { value: 'approved', label: 'Approved · awaiting payment' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
-/** Pending claims can be approved; anything not yet paid or rejected can be rejected. */
-const canApprove = (e: Expense) => e.employeeStatus === 'pending' && e.adminStatus === 'pending';
-const canReject = (e: Expense) =>
-  e.employeeStatus !== 'rejected' &&
-  e.adminStatus !== 'rejected' &&
-  e.adminStatus !== 'paid' &&
-  (e.reimbursement?.amountPaid ?? 0) === 0;
-
-const defaultFilters: AdminExpenseListFilters = {
-  page: 1,
-  limit: ADMIN_EXPENSE_DEFAULT_PAGE_SIZE,
-  order: 'desc',
-};
-
-const adminSupportFileUrl = (id: number) =>
-  API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.SUPPORT_FILE(id);
+const fileName = (path: string) => path.split('/').pop() ?? 'Receipt';
 
 export function AdminExpensesPageContent() {
-  const [filters, setFilters] = useState<AdminExpenseListFilters>(defaultFilters);
-  const [searchInput, setSearchInput] = useState('');
-  const [dialogMode, setDialogMode] = useState<DialogMode>(null);
-  const [active, setActive] = useState<Expense | null>(null);
-  const [decision, setDecision] = useState<Decision | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // ?claim=<id> opens that claim's details (links from Payables and search).
+  const claimParam = Number(searchParams.get('claim'));
+  const { data: linkedClaim } = useAdminExpense(Number.isInteger(claimParam) && claimParam > 0 ? claimParam : undefined);
+  const initialStage = searchParams.get('stage') as ExpenseStage | null;
+  const [filters, setFilters] = useState<AdminExpenseListFilters>({
+    page: 1,
+    limit: ADMIN_EXPENSE_DEFAULT_PAGE_SIZE,
+    order: 'desc',
+    ...(initialStage && STAGE_OPTIONS.some((o) => o.value === initialStage) ? { stage: initialStage } : {}),
+  });
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
+  const [viewing, setViewing] = useState<Expense | null>(null);
+  const [deleting, setDeleting] = useState<Expense | null>(null);
+  const [decision, setDecision] = useState<ExpenseDecision | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const debouncedSearch = useDebounce(searchInput);
+  const [pagedSearch, setPagedSearch] = useState(debouncedSearch);
+  if (debouncedSearch !== pagedSearch) {
+    setPagedSearch(debouncedSearch);
+    setFilters((f) => ({ ...f, page: 1 }));
+  }
+  const listFilters: AdminExpenseListFilters = { ...filters, search: debouncedSearch || undefined };
 
   const summaryFilters: AdminExpenseSummaryFilters = useMemo(
-    () => ({
-      employeeId: filters.employeeId,
-      status: filters.status,
-      categoryId: filters.categoryId,
-      dateFrom: filters.dateFrom,
-      dateTo: filters.dateTo,
-    }),
-    [
-      filters.employeeId,
-      filters.status,
-      filters.categoryId,
-      filters.dateFrom,
-      filters.dateTo,
-    ],
+    () => ({ employeeId: filters.employeeId, categoryId: filters.categoryId, dateFrom: filters.dateFrom, dateTo: filters.dateTo }),
+    [filters.employeeId, filters.categoryId, filters.dateFrom, filters.dateTo],
   );
-
-  const { data, isLoading, isError, error, refetch, isFetching } =
-    useAdminExpenses(filters);
-  const { data: summary, isLoading: summaryLoading } =
-    useAdminExpenseSummary(summaryFilters);
-  const { approveExpense, rejectExpense, deleteExpense } = useAdminExpenseMutations();
-  const deciding = approveExpense.isPending || rejectExpense.isPending;
-
-  const { data: categories = [] } = useAdminCategoryDropdown();
-  const { data: whomOptions = [] } = useAdminWhomDropdown();
-  const { data: paymentMethods = [] } = useAdminPaymentMethodDropdown();
-  const { data: employeeData } = useAdminEmployeeOptions();
-
-  const categoryIds = useMemo(() => categories.map((c) => c.id), [categories]);
-  const subCategoryMap = useAdminSubCategoryLabelMap(categoryIds);
-
-  const categoryMap = useMemo(
-    () => Object.fromEntries(categories.map((c) => [c.id, c.name])),
-    [categories],
-  );
-  const whomMap = useMemo(
-    () => Object.fromEntries(whomOptions.map((w) => [w.id, w.empName])),
-    [whomOptions],
-  );
-  const paymentMap = useMemo(
-    () => Object.fromEntries(paymentMethods.map((p) => [p.id, p.name])),
-    [paymentMethods],
-  );
-  const employeeMap = useMemo(() => {
-    const employees = employeeData?.items ?? [];
-    return Object.fromEntries(
-      employees.map((e) => [e.id, e.empName]),
-    );
-  }, [employeeData]);
-
+  const { data, isLoading, isError, error, refetch } = useAdminExpenses(listFilters);
+  const { data: summary, isLoading: summaryLoading } = useAdminExpenseSummary(summaryFilters);
+  const { deleteExpense } = useAdminExpenseMutations();
+  const lookups = useExpenseLookups();
   const items = data?.items ?? [];
-  const meta = data?.meta;
-  const employees = employeeData?.items ?? [];
-
-  // Apply the debounced search and go back to page 1 when it changes.
-  const [appliedSearch, setAppliedSearch] = useState(debouncedSearch);
-  if (debouncedSearch !== appliedSearch) {
-    setAppliedSearch(debouncedSearch);
-    setFilters((f) => ({ ...f, search: debouncedSearch || undefined, page: 1 }));
-  }
-
-  const closeDialog = () => {
-    setDialogMode(null);
-    setActive(null);
+  const shownClaim = viewing ?? linkedClaim ?? null;
+  const closeClaim = () => {
+    setViewing(null);
+    if (searchParams.get('claim')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('claim');
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }
   };
 
-  const openView = (expense: Expense) => {
-    setActive(expense);
-    setDialogMode('view');
-  };
+  const byStatus = (status: 'pending' | 'paid' | 'rejected') =>
+    summary?.byStatus.find((s) => s.adminStatus === status) ?? { count: 0, amount: 0 };
+  const employeeName = (e: Expense) => lookups.employeeMap[e.employeeId] ?? `Employee #${e.employeeId}`;
+  const decide = (expense: Expense, action: 'approve' | 'reject') =>
+    setDecision({ expense, action, employeeName: employeeName(expense) });
 
-  const openDelete = (expense: Expense) => {
-    setActive(expense);
-    setDialogMode('delete');
-  };
-
-  const confirmDecision = () => {
-    if (!decision) return;
-    const mutation = decision.action === 'approve' ? approveExpense : rejectExpense;
-    mutation.mutate(decision.expense.id, {
-      onSuccess: (updated) => {
-        setDecision(null);
-        if (dialogMode === 'view') setActive(updated);
-      },
-    });
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all: Expense[] = [];
+      for (let page = 1; ; page++) {
+        const res = await adminExpenseService.list({ ...listFilters, page, limit: 100 });
+        all.push(...res.items);
+        if (page >= res.meta.totalPages) break;
+      }
+      downloadCsv('dx-expense-claims.csv', [
+        ['Claim', 'Date', 'Employee', 'Whom', 'Category', 'Sub category', 'Amount (AED)', 'Payment', 'Status', 'Reimbursement', 'Description'],
+        ...all.map((e) => [
+          e.id,
+          e.date,
+          employeeName(e),
+          lookups.whomMap[e.whom] ?? '',
+          lookups.categoryMap[e.categoryId] ?? '',
+          lookups.subCategoryMap[e.subCategoryId] ?? '',
+          e.amount,
+          lookups.paymentMap[e.paymentMethodId] ?? '',
+          getExpenseStage(e).label,
+          e.reimbursement?.billNo ?? '',
+          e.description ?? '',
+        ]),
+      ]);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <section className="space-y-5">
       <PageHeader
         title={PAGE_TITLES.ADMIN_EXPENSES}
         description={PAGE_DESCRIPTIONS.ADMIN_EXPENSES}
         actions={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`mr-2 size-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <>
+            <Button variant="outline" size="lg" render={<Link href={ADMIN_ROUTES.EXPENSES_REVIEW} />}>
+              Review one by one
+            </Button>
+            <Button loading={exporting} variant="outline" size="lg" onClick={exportCsv} disabled={exporting || items.length === 0}>
+              <Download className="size-4" />
+              Export
+            </Button>
+          </>
         }
       />
 
-      <AdminExpenseSummaryCards summary={summary} isLoading={summaryLoading} />
+      {summaryLoading ? (
+        <StatCardsSkeleton />
+      ) : summary ? (
+        <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard label="Total claims" value={String(summary.totalCount)} hint={formatMoney(summary.totalAmount)} icon={Receipt} tone="outstanding" iconColor="blue" iconTile />
+          <StatCard label="Pending" value={String(byStatus('pending').count)} hint={formatMoney(byStatus('pending').amount)} icon={Clock4} tone="pending" iconTile />
+          <StatCard label="Paid" value={String(byStatus('paid').count)} hint={formatMoney(byStatus('paid').amount)} icon={CircleCheck} tone="settled" iconTile />
+          <StatCard label="Rejected" value={String(byStatus('rejected').count)} hint={formatMoney(byStatus('rejected').amount)} icon={CircleX} tone="overdue" iconTile />
+        </section>
+      ) : null}
 
-      <Card className={UI_PANEL.filter}>
-        <div className="grid gap-3 lg:grid-cols-5">
-          <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="pl-9"
-              placeholder="Search description…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              aria-label="Search expenses"
-            />
+      <Card className="gap-0 py-0" aria-label="Expense claims">
+        <div className="flex flex-wrap gap-3 p-4">
+          <div className="relative min-w-0 flex-[2_1_240px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input className="pl-9" type="search" placeholder="Search description…" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} aria-label="Search expenses" />
           </div>
           <Select
+            className="w-auto flex-[1_1_160px]"
+            aria-label="Employee"
             value={filters.employeeId ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                employeeId: e.target.value ? Number(e.target.value) : undefined,
-                page: 1,
-              }))
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, employeeId: e.target.value ? Number(e.target.value) : undefined, page: 1 }))}
           >
             <option value="">All employees</option>
-            {employees.map((e) => (
+            {lookups.employees.map((e) => (
               <option key={e.id} value={e.id}>
                 {e.empName}
               </option>
             ))}
           </Select>
           <Select
-            value={filters.status ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                status: (e.target.value as AdminExpenseStatus) || undefined,
-                page: 1,
-              }))
-            }
-          >
-            {ADMIN_EXPENSE_STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value || 'all'} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </Select>
-          <Select
+            className="w-auto flex-[1_1_160px]"
+            aria-label="Category"
             value={filters.categoryId ?? ''}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                categoryId: e.target.value ? Number(e.target.value) : undefined,
-                page: 1,
-              }))
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, categoryId: e.target.value ? Number(e.target.value) : undefined, page: 1 }))}
           >
             <option value="">All categories</option>
-            {categories.map((c) => (
+            {lookups.categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
           </Select>
           <DateRangePicker
+            className="flex-[1_1_200px]"
             placeholder="Expense date range"
             value={{ from: filters.dateFrom, to: filters.dateTo }}
-            onChange={({ from, to }) =>
-              setFilters((f) => {
-                const next = { ...f, page: 1 };
-                if (from) next.dateFrom = from;
-                else delete next.dateFrom;
-                if (to) next.dateTo = to;
-                else delete next.dateTo;
-                return next;
-              })
-            }
+            onChange={({ from, to }) => setFilters((f) => ({ ...f, dateFrom: from, dateTo: to, page: 1 }))}
           />
-        </div>
-      </Card>
-
-      <Card className={cn(UI_PANEL.table, 'gap-0 py-0')}>
-        {isError ? (
-          <div className="p-6">
-            <ErrorPanel
-              title="Failed to load expenses"
-              message={
-                typeof error === 'object' && error !== null && 'message' in error
-                  ? String((error as { message: string }).message)
-                  : 'Something went wrong'
-              }
-              onRetry={() => refetch()}
-            />
-          </div>
-        ) : isLoading ? (
-          <div className="space-y-3 p-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
+          <Select
+            className="w-auto flex-[0_1_200px]"
+            aria-label="Status"
+            value={filters.stage ?? ''}
+            onChange={(e) => setFilters((f) => ({ ...f, stage: (e.target.value as ExpenseStage) || undefined, page: 1 }))}
+          >
+            {STAGE_OPTIONS.map((o) => (
+              <option key={o.value || 'all'} value={o.value}>
+                {o.label}
+              </option>
             ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="p-8">
-            <EmptyState
-              title="No expenses found"
-              description="Try adjusting filters or check back when employees submit claims."
-            />
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Sub category</TableHead>
-                    <TableHead>Whom</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>File</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>{formatExpenseDate(expense.date)}</TableCell>
-                      <TableCell className="font-medium">
-                        {employeeMap[expense.employeeId] ?? `#${expense.employeeId}`}
-                      </TableCell>
-                      <TableCell>{formatExpenseAmount(expense.amount)}</TableCell>
-                      <TableCell>
-                        {categoryMap[expense.categoryId] ?? expense.categoryId}
-                      </TableCell>
-                      <TableCell>
-                        {subCategoryMap[expense.subCategoryId] ?? expense.subCategoryId}
-                      </TableCell>
-                      <TableCell>{whomMap[expense.whom] ?? expense.whom}</TableCell>
-                      <TableCell>
-                        {paymentMap[expense.paymentMethodId] ?? expense.paymentMethodId}
-                      </TableCell>
-                      <TableCell>
-                        {expense.supportFile ? (
-                          isImageSupportFile(expense.supportFile) ? (
-                            <ExpenseAttachmentPreview
-                              expenseId={expense.id}
-                              supportFile={expense.supportFile}
-                              supportFileUrl={adminSupportFileUrl}
-                              variant="thumbnail"
-                            />
-                          ) : (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="h-auto px-0"
-                              onClick={() => openView(expense)}
-                            >
-                              View
-                            </Button>
-                          )
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <ExpenseStageBadge expense={expense} showBillLink />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="View"
-                            onClick={() => openView(expense)}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          {canApprove(expense) ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Approve"
-                              title="Approve – creates a reimbursement bill"
-                              disabled={deciding}
-                              onClick={() => setDecision({ expense, action: 'approve' })}
-                            >
-                              <CheckCircle2 className="size-4 text-emerald-600" />
-                            </Button>
-                          ) : null}
-                          {canReject(expense) ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Reject"
-                              title="Reject"
-                              disabled={deciding}
-                              onClick={() => setDecision({ expense, action: 'reject' })}
-                            >
-                              <XCircle className="size-4 text-destructive" />
-                            </Button>
-                          ) : null}
-                          {/* Money already paid out can't be deleted with the claim. */}
-                          {(expense.reimbursement?.amountPaid ?? 0) === 0 ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Delete"
-                              onClick={() => openDelete(expense)}
-                            >
-                              <Trash2 className="size-4 text-destructive" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          </Select>
+        </div>
+
+        <div className="border-t border-border">
+          {isError ? (
+            <div className="p-6">
+              <ErrorPanel title="Failed to load expenses" message={error?.message ?? 'Something went wrong'} onRetry={() => refetch()} />
             </div>
-            {meta ? (
-              <TablePagination
-                meta={meta}
-                onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
-              />
-            ) : null}
-          </>
-        )}
+          ) : isLoading ? (
+            <TableRowsSkeleton rows={6} />
+          ) : items.length === 0 ? (
+            <div className="p-8">
+              <EmptyState title="No expense claims" description="Claims employees submit will appear here. Try clearing the filters." />
+            </div>
+          ) : (
+            <Table className="min-w-[1080px] animate-in fade-in-0 duration-300">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Whom</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Sub category</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>File</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="whitespace-nowrap">{formatExpenseDate(expense.date)}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">{employeeName(expense)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{lookups.whomMap[expense.whom] ?? '—'}</TableCell>
+                    <TableCell>{lookups.categoryMap[expense.categoryId] ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{lookups.subCategoryMap[expense.subCategoryId] ?? '—'}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">{formatMoney(expense.amount)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{lookups.paymentMap[expense.paymentMethodId] ?? '—'}</TableCell>
+                    <TableCell>
+                      {expense.supportFile ? (
+                        <button
+                          type="button"
+                          onClick={() => setViewing(expense)}
+                          className="inline-flex max-w-36 items-center gap-1 text-[13px] text-primary hover:underline"
+                        >
+                          <Paperclip className="size-3.5 shrink-0" aria-hidden />
+                          <span className="truncate">{fileName(expense.supportFile)}</span>
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <ExpenseStageBadge expense={expense} showBillLink />
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-right">
+                      <Button variant="ghost" size="icon" aria-label="View" onClick={() => setViewing(expense)}>
+                        <Eye className="size-4" />
+                      </Button>
+                      {canApprove(expense) ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Approve – creates a reimbursement bill"
+                          title="Approve"
+                          className="text-status-success-ink hover:text-status-success-ink"
+                          onClick={() => decide(expense, 'approve')}
+                        >
+                          <Check className="size-4" />
+                        </Button>
+                      ) : null}
+                      {canReject(expense) ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Reject"
+                          title="Reject"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => decide(expense, 'reject')}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+        {data?.meta && items.length > 0 ? (
+          <TablePagination meta={data.meta} onPageChange={(page) => setFilters((f) => ({ ...f, page }))} />
+        ) : null}
       </Card>
 
-      <Dialog open={dialogMode === 'view'} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent onClose={closeDialog} className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Expense details</DialogTitle>
-            <DialogDescription>
-              Approve to create a reimbursement bill; it is paid from Payables.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody>
-            {active ? (
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Employee</dt>
-                  <dd className="font-medium">
-                    {employeeMap[active.employeeId] ?? `#${active.employeeId}`}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Date</dt>
-                  <dd>{formatExpenseDate(active.date)}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Amount</dt>
-                  <dd className="font-medium">{formatExpenseAmount(active.amount)}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Whom</dt>
-                  <dd>{whomMap[active.whom] ?? active.whom}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Category</dt>
-                  <dd>{categoryMap[active.categoryId] ?? active.categoryId}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Sub category</dt>
-                  <dd>{subCategoryMap[active.subCategoryId] ?? active.subCategoryId}</dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Status</dt>
-                  <dd>
-                    <ExpenseStageBadge expense={active} showBillLink />
-                  </dd>
-                </div>
-                {active.reimbursement && active.reimbursement.status !== 'cancelled' ? (
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-muted-foreground">Reimbursed</dt>
-                    <dd>
-                      {formatExpenseAmount(active.reimbursement.amountPaid)} of{' '}
-                      {formatExpenseAmount(active.reimbursement.totalAmount)}
-                      {active.reimbursement.lastPaymentDate
-                        ? ` · last paid ${formatExpenseDate(active.reimbursement.lastPaymentDate)}`
-                        : ''}
-                    </dd>
-                  </div>
-                ) : null}
-                {active.description ? (
-                  <div>
-                    <dt className="text-muted-foreground">Description</dt>
-                    <dd className="mt-1">{active.description}</dd>
-                  </div>
-                ) : null}
-                {active.supportFile ? (
-                  <div>
-                    <dt className="mb-2 text-muted-foreground">Attachment</dt>
-                    <dd>
-                      <ExpenseAttachmentPreview
-                        expenseId={active.id}
-                        supportFile={active.supportFile}
-                        supportFileUrl={adminSupportFileUrl}
-                        variant="detail"
-                      />
-                    </dd>
-                  </div>
-                ) : null}
-              </dl>
-            ) : null}
-          </DialogBody>
-          <DialogFooter className="flex-wrap gap-2">
-            <Button variant="outline" onClick={closeDialog}>
-              Close
-            </Button>
-            {active && canReject(active) ? (
-              <Button
-                variant="outline"
-                disabled={deciding}
-                onClick={() => setDecision({ expense: active, action: 'reject' })}
-              >
-                <XCircle className="size-4" />
-                Reject
-              </Button>
-            ) : null}
-            {active && canApprove(active) ? (
-              <Button disabled={deciding} onClick={() => setDecision({ expense: active, action: 'approve' })}>
-                <CheckCircle2 className="size-4" />
-                Approve
-              </Button>
-            ) : null}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ExpenseDetailDialog
+        expense={shownClaim}
+        lookups={lookups}
+        onClose={closeClaim}
+        onApprove={(e) => decide(e, 'approve')}
+        onReject={(e) => decide(e, 'reject')}
+        onDelete={(e) => setDeleting(e)}
+        canApprove={canApprove}
+        canReject={canReject}
+      />
+
+      <ExpenseDecisionDialogs
+        decision={decision}
+        onClose={() => setDecision(null)}
+        onDone={(updated) => setViewing((current) => (current && current.id === updated.id ? updated : current))}
+      />
 
       <ConfirmDialog
-        open={dialogMode === 'delete'}
-        onOpenChange={(open) => !open && closeDialog()}
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
         title="Delete expense"
         description={
-          active?.reimbursement && active.reimbursement.status !== 'cancelled'
-            ? `Delete this expense claim? Its unpaid reimbursement ${active.reimbursement.billNo} will be cancelled.`
-            : 'Soft-delete this expense claim? Employees will no longer see it in their list.'
+          deleting?.reimbursement && deleting.reimbursement.status !== 'cancelled'
+            ? `Delete this ${formatMoney(deleting.amount)} claim? Its unpaid reimbursement ${deleting.reimbursement.billNo} will be cancelled.`
+            : `Delete this ${deleting ? formatMoney(deleting.amount) : ''} claim? The employee will no longer see it.`
         }
         confirmText="Delete"
         variant="destructive"
         loading={deleteExpense.isPending}
         onConfirm={() =>
-          active &&
-          deleteExpense.mutate(active.id, {
-            onSuccess: closeDialog,
+          deleting &&
+          deleteExpense.mutate(deleting.id, {
+            onSuccess: () => {
+              setDeleting(null);
+              closeClaim();
+            },
           })
         }
-        onCancel={closeDialog}
+        onCancel={() => setDeleting(null)}
       />
-
-      <ConfirmDialog
-        open={decision !== null}
-        onOpenChange={(open) => !open && setDecision(null)}
-        title={decision?.action === 'approve' ? 'Approve expense' : 'Reject expense'}
-        description={
-          decision
-            ? decision.action === 'approve'
-              ? `Approve ${formatExpenseAmount(decision.expense.amount)}? A reimbursement bill will be created in Payables, where the payment is recorded.`
-              : `Reject this ${formatExpenseAmount(decision.expense.amount)} claim?${
-                  getExpenseStage(decision.expense).label.startsWith('Approved')
-                    ? ' Its unpaid reimbursement bill will be cancelled.'
-                    : ''
-                }`
-            : ''
-        }
-        confirmText={decision?.action === 'approve' ? 'Approve' : 'Reject'}
-        variant={decision?.action === 'reject' ? 'destructive' : undefined}
-        loading={deciding}
-        onConfirm={confirmDecision}
-        onCancel={() => setDecision(null)}
-      />
-    </div>
+    </section>
   );
 }

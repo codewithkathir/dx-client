@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarCheck, FileClock, HandCoins } from 'lucide-react';
+import { CalendarCheck, FileClock, HandCoins, TriangleAlert, type LucideIcon } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,66 +21,143 @@ interface MoneySummaryCardsProps {
   /** e.g. "bill" or "invoice" */
   documentNoun: string;
   settledLabel: string;
+  /** Money received is shown in green (receivables); money paid out is not. */
+  highlightSettled?: boolean;
+}
+
+export type StatTone = 'plain' | 'outstanding' | 'overdue' | 'settled' | 'pending';
+export type StatIconColor = 'muted' | 'blue' | 'green' | 'red' | 'amber';
+
+/** Card tints from the design system: blue = owed, red = overdue, green = settled money. */
+const TONE_CARD: Record<StatTone, string> = {
+  plain: '',
+  outstanding: 'bg-gradient-to-br from-card to-brand-blue-50',
+  overdue: 'border-[color-mix(in_oklch,var(--destructive)_30%,var(--card))] bg-gradient-to-br from-card to-status-danger',
+  settled: 'border-[color-mix(in_oklch,var(--status-success-ink)_30%,var(--card))] bg-gradient-to-br from-card to-status-success',
+  pending: 'border-[#f3dfb3] bg-gradient-to-br from-card to-status-warning',
+};
+
+/** Icons are grey unless the figure needs attention (design ".dx-stat svg"). */
+const TONE_ICON: Record<StatTone, StatIconColor> = {
+  plain: 'muted',
+  outstanding: 'muted',
+  overdue: 'red',
+  settled: 'green',
+  pending: 'amber',
+};
+
+const ICON_COLOR: Record<StatIconColor, string> = {
+  muted: 'text-muted-foreground',
+  blue: 'text-primary',
+  green: 'text-status-success-ink',
+  red: 'text-destructive',
+  amber: 'text-status-warning-ink',
+};
+
+const VALUE_COLOR: Partial<Record<StatTone, string>> = {
+  overdue: 'text-destructive',
+  settled: 'text-status-success-ink',
+};
+
+export interface StatCardProps {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: LucideIcon;
+  tone?: StatTone;
+  /** Highlight the figure in the tone's colour (overdue, settled). */
+  toneValue?: boolean;
+  /** Override the icon colour (defaults by tone). */
+  iconColor?: StatIconColor;
+  /** Show the icon in a 40px tile (Expenses summary). */
+  iconTile?: boolean;
+}
+
+/** A single summary figure (design system "dx-stat"). */
+export function StatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  tone = 'plain',
+  toneValue = false,
+  iconColor,
+  iconTile = false,
+}: StatCardProps) {
+  const color = ICON_COLOR[iconColor ?? TONE_ICON[tone]];
+  return (
+    <Card className={cn('animate-in fade-in-0 slide-in-from-bottom-1 flex-row items-start justify-between gap-3 p-5 shadow-sm duration-300', TONE_CARD[tone])}>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className={cn('mt-2 truncate text-2xl font-semibold tabular-nums tracking-tight', toneValue && VALUE_COLOR[tone])}>{value}</p>
+        {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+      </div>
+      {iconTile ? (
+        <span
+          aria-hidden
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-[10px]',
+            tone === 'outstanding' ? 'bg-brand-blue-50' : 'bg-card shadow-sm',
+            color,
+          )}
+        >
+          <Icon className="size-5" />
+        </span>
+      ) : (
+        <Icon className={cn('size-5 shrink-0', color)} aria-hidden />
+      )}
+    </Card>
+  );
+}
+
+export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton key={i} className="h-[118px] rounded-xl" />
+      ))}
+    </div>
+  );
 }
 
 /** Outstanding / overdue / settled-this-month / drafts cards for Payables and Receivables. */
-export function MoneySummaryCards({ summary, isLoading, documentNoun, settledLabel }: MoneySummaryCardsProps) {
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-xl" />
-        ))}
-      </div>
-    );
-  }
+export function MoneySummaryCards({
+  summary,
+  isLoading,
+  documentNoun,
+  settledLabel,
+  highlightSettled = false,
+}: MoneySummaryCardsProps) {
+  if (isLoading) return <StatCardsSkeleton />;
   if (!summary) return null;
-
-  const cards = [
-    {
-      label: 'Outstanding',
-      value: formatMoney(summary.outstandingAmount),
-      hint: `${summary.outstandingCount} unpaid ${documentNoun}${summary.outstandingCount === 1 ? '' : 's'}`,
-      icon: HandCoins,
-      accent: 'border-border bg-gradient-to-br from-card to-muted/30',
-    },
-    {
-      label: 'Overdue',
-      value: formatMoney(summary.overdueAmount),
-      hint: `${summary.overdueCount} past due date`,
-      icon: AlertTriangle,
-      accent: summary.overdueCount > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border',
-    },
-    {
-      label: settledLabel,
-      value: formatMoney(summary.settledThisMonth),
-      hint: 'Since the 1st of this month',
-      icon: CalendarCheck,
-      accent: 'border-emerald-500/30 bg-emerald-500/5',
-    },
-    {
-      label: 'Drafts',
-      value: String(summary.draftCount),
-      hint: 'Not yet issued',
-      icon: FileClock,
-      accent: 'border-border',
-    },
-  ];
+  const plural = (n: number) => `${n} ${documentNoun}${n === 1 ? '' : 's'}`;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map(({ label, value, hint, icon: Icon, accent }) => (
-        <Card key={label} className={cn('p-5 shadow-sm', accent)}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">{label}</p>
-              <p className="mt-2 truncate text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-            </div>
-            <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          </div>
-        </Card>
-      ))}
-    </div>
+    <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard
+        label="Outstanding"
+        value={formatMoney(summary.outstandingAmount)}
+        hint={`${summary.outstandingCount} unpaid ${documentNoun}${summary.outstandingCount === 1 ? '' : 's'}`}
+        icon={HandCoins}
+        tone="outstanding"
+      />
+      <StatCard
+        label="Overdue"
+        value={formatMoney(summary.overdueAmount)}
+        hint={`${plural(summary.overdueCount)} past due date`}
+        icon={TriangleAlert}
+        tone={summary.overdueCount > 0 ? 'overdue' : 'plain'}
+        toneValue={summary.overdueCount > 0}
+      />
+      <StatCard
+        label={settledLabel}
+        value={formatMoney(summary.settledThisMonth)}
+        hint="Since the 1st of this month"
+        icon={CalendarCheck}
+        tone="settled"
+        toneValue={highlightSettled}
+      />
+      <StatCard label="Drafts" value={String(summary.draftCount)} hint="Not yet issued" icon={FileClock} />
+    </section>
   );
 }

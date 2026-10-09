@@ -4,6 +4,7 @@ export const ADMIN_ROUTES = {
   CATEGORIES: '/admin/categories',
   USERS: '/admin/users',
   EXPENSES: '/admin/expenses',
+  EXPENSES_REVIEW: '/admin/expenses/review',
   PAYABLES: '/admin/payables',
   SUPPLIERS: '/admin/suppliers',
   RECEIVABLES: '/admin/receivables',
@@ -17,6 +18,9 @@ export const ADMIN_ROUTES = {
 export const USER_ROUTES = {
   HOME: '/app/home',
   EXPENSES: '/app/expenses',
+  EXPENSE_NEW: '/app/expenses/new',
+  EXPENSE_DETAIL: (id: number) => `/app/expenses/${id}`,
+  EXPENSE_EDIT: (id: number) => `/app/expenses/${id}/edit`,
   PROFILE: '/app/profile',
   ORDERS: '/app/orders',
   LOGIN: '/login',

@@ -10,7 +10,7 @@ import type {
   PaymentPayload,
 } from '@/types/finance.types';
 
-function buildListParams(filters: BillListFilters): Record<string, string | number> {
+function buildListParams(filters: BillListFilters & { dueFrom?: string; dueTo?: string }): Record<string, string | number> {
   const params: Record<string, string | number> = {
     page: filters.page ?? 1,
     limit: filters.limit ?? 10,
@@ -22,6 +22,8 @@ function buildListParams(filters: BillListFilters): Record<string, string | numb
   if (filters.supplierId) params.supplierId = filters.supplierId;
   if (filters.dateFrom) params.dateFrom = filters.dateFrom;
   if (filters.dateTo) params.dateTo = filters.dateTo;
+  if (filters.dueFrom) params.dueFrom = filters.dueFrom;
+  if (filters.dueTo) params.dueTo = filters.dueTo;
   if (filters.sortBy) params.sortBy = filters.sortBy;
   return params;
 }

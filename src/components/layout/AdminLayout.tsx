@@ -1,125 +1,98 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import Link from 'next/link';
+import { LogOut } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import {
-  Briefcase,
-  Building2,
-  FolderTree,
-  HandCoins,
-  Landmark,
-  Users,
-  LayoutDashboard,
-  Menu,
-  Settings,
-  Wallet,
-} from 'lucide-react';
 
-import { LayoutUserMenu } from '@/components/shared/LayoutUserMenu';
-import { Button } from '@/components/ui/button';
+import { AdminSidebar } from '@/components/layout/AdminSidebar';
+import { LoadingBar } from '@/components/feedback/LoadingBar';
+import { AdminTopbar } from '@/components/layout/AdminTopbar';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { AUTH_PORTAL } from '@/constants/auth.constants';
-import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { cn } from '@/lib/utils';
-import { selectSidebarOpen } from '@/store/sidebar/sidebar.selectors';
-import { toggleSidebar } from '@/store/sidebar/sidebar.slice';
+import { selectMobileSidebarOpen } from '@/store/sidebar/sidebar.selectors';
+import { setMobileSidebarOpen } from '@/store/sidebar/sidebar.slice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-
-const ADMIN_NAV = [
-  { href: ADMIN_ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-  { href: ADMIN_ROUTES.EMPLOYEES, label: 'Employees', icon: Briefcase },
-  { href: ADMIN_ROUTES.CATEGORIES, label: 'Categories', icon: FolderTree },
-  { href: ADMIN_ROUTES.EXPENSES, label: 'Expenses', icon: Wallet },
-  { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },
-  { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building2 },
-  { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
-  { href: ADMIN_ROUTES.CUSTOMERS, label: 'Customers', icon: Users },
-  { href: ADMIN_ROUTES.SETTINGS, label: 'Settings', icon: Settings },
-] as const;
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Admin shell (desktop-first): fixed sidebar and top bar; only <main> scrolls.
+ * Below `lg` the sidebar becomes a slide-in drawer opened from the top bar.
+ */
 export function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const isSidebarOpen = useAppSelector(selectSidebarOpen);
+  const isDrawerOpen = useAppSelector(selectMobileSidebarOpen);
   const logoutMutation = useLogout(AUTH_PORTAL.ADMIN);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
-  // Only <main> scrolls, so start each page at the top of it.
+  // Only <main> scrolls, so start each page at the top of it; close the drawer on navigation.
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
-  }, [pathname]);
+    dispatch(setMobileSidebarOpen(false));
+  }, [pathname, dispatch]);
 
-  // Fixed frame: sidebar and header stay put; only <main> scrolls.
+  const closeDrawer = () => dispatch(setMobileSidebarOpen(false));
+  const signOut = () => setConfirmSignOut(true);
+
   return (
-    <div className="flex h-dvh overflow-hidden">
-      <aside
-        className={cn(
-          'hidden shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-200 lg:flex lg:flex-col',
-          isSidebarOpen ? 'w-64' : 'w-16',
-        )}
+    <div className="flex h-dvh overflow-hidden bg-background">
+      <div className="hidden shrink-0 lg:flex">
+        <AdminSidebar onSignOut={signOut} />
+      </div>
+
+      {/* Drawer for narrower screens */}
+      <div
+        className={cn('fixed inset-0 z-40 lg:hidden', isDrawerOpen ? 'visible' : 'invisible')}
+        aria-hidden={!isDrawerOpen}
       >
-        <div className="flex h-14 shrink-0 items-center border-b border-sidebar-border px-4 text-sm font-semibold text-sidebar-foreground">
-          {isSidebarOpen ? 'Admin Portal' : 'AP'}
+        <button
+          type="button"
+          aria-label="Close menu"
+          tabIndex={isDrawerOpen ? 0 : -1}
+          onClick={closeDrawer}
+          className={cn('absolute inset-0 bg-[var(--scrim)] transition-opacity', isDrawerOpen ? 'opacity-100' : 'opacity-0')}
+        />
+        <div
+          className={cn(
+            'absolute inset-y-0 left-0 shadow-dialog transition-transform duration-200',
+            isDrawerOpen ? 'translate-x-0' : '-translate-x-full',
+          )}
+        >
+          <AdminSidebar onNavigate={closeDrawer} onSignOut={signOut} />
         </div>
-        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2">
-          {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                  'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
-                  isActive &&
-                    'bg-sidebar-primary font-medium text-sidebar-primary-foreground shadow-sm',
-                )}
-              >
-                <Icon
-                  className={cn(
-                    'size-[18px] shrink-0',
-                    isActive ? 'text-sidebar-primary-foreground' : 'text-sidebar-foreground',
-                  )}
-                  strokeWidth={1.75}
-                />
-                {isSidebarOpen ? <span>{label}</span> : null}
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            onClick={() => dispatch(toggleSidebar())}
-            aria-label="Toggle sidebar"
-          >
-            <Menu className="size-[18px]" strokeWidth={1.75} />
-          </Button>
-          <span className="flex-1 text-sm font-medium text-sidebar-foreground">
-            Admin Portal
-          </span>
-          <LayoutUserMenu
-            profileHref={ADMIN_ROUTES.SETTINGS}
-            settingsHref={ADMIN_ROUTES.SETTINGS}
-            signOutDescription="Are you sure you want to sign out of the admin portal?"
-            signOutPending={logoutMutation.isPending}
-            onConfirmSignOut={() => logoutMutation.mutate()}
-          />
-        </header>
-        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-background p-6">
-          {children}
-        </main>
+        <AdminTopbar onOpenMenu={() => dispatch(setMobileSidebarOpen(true))} />
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <LoadingBar />
+          <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto">
+            {/* Keyed by route so each page fades in on navigation. */}
+            <div key={pathname} className="page-in mx-auto w-full max-w-[1280px] px-4 pt-7 pb-10 sm:px-8">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmSignOut}
+        onOpenChange={setConfirmSignOut}
+        icon={LogOut}
+        tone="neutral"
+        title="Sign out"
+        description="Are you sure you want to sign out of the admin portal?"
+        confirmText="Sign out"
+        loading={logoutMutation.isPending}
+        onConfirm={() => logoutMutation.mutate()}
+        onCancel={() => setConfirmSignOut(false)}
+      />
     </div>
   );
 }

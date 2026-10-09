@@ -10,11 +10,12 @@ interface AccountAvatarProps {
   name: string;
   photoFetchUrl: string | null;
   hasProfilePhoto: boolean;
-  size?: 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
 const SIZE_CLASSES = {
+  sm: 'size-9 text-[13px]',
   md: 'size-16 text-base',
   lg: 'size-24 text-lg',
   xl: 'size-32 text-xl',
@@ -67,7 +68,7 @@ export function AccountAvatar({
   return (
     <div
       className={cn(
-        'relative shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted shadow-sm',
+        'relative shrink-0 overflow-hidden rounded-full border-2 border-border bg-muted text-muted-foreground shadow-sm',
         SIZE_CLASSES[size],
         className,
       )}
@@ -77,8 +78,8 @@ export function AccountAvatar({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={name} className="size-full object-cover" />
       ) : (
-        <span className="flex size-full items-center justify-center font-semibold text-muted-foreground">
-          {initials || <User className="size-8" aria-hidden />}
+        <span className="flex size-full items-center justify-center font-semibold">
+          {initials || <User className="size-[45%]" aria-hidden />}
         </span>
       )}
     </div>

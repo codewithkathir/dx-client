@@ -1,18 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Download,
-  Eye,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-  UserCheck,
-} from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Download, Eye, Pen, Plus, Search, Trash, User, UserCheck, Users } from 'lucide-react';
 
-import { UI_PANEL } from '@/constants/ui.constants';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { cn } from '@/lib/utils';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
@@ -21,20 +12,13 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { TablePagination } from '@/components/tables/TablePagination';
+import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
 import {
   Table,
   TableBody,
@@ -78,7 +62,10 @@ export function EmployeesPageContent() {
 
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [activeEmployee, setActiveEmployee] = useState<Employee | null>(null);
-  const [searchInput, setSearchInput] = useState(filters.search ?? '');
+  const searchParams = useSearchParams();
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get('search') ?? filters.search ?? '',
+  );
   const [bulkStatusConfirm, setBulkStatusConfirm] = useState<EmployeeStatus | null>(null);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
@@ -101,8 +88,7 @@ export function EmployeesPageContent() {
     dispatch(setEmployeeFilters({ search: debouncedSearch, page: 1 }));
   }, [debouncedSearch, dispatch]);
 
-  const allSelected =
-    employees.length > 0 && employees.every((e) => selectedIds.includes(e.id));
+  const allSelected = employees.length > 0 && employees.every((e) => selectedIds.includes(e.id));
 
   const openCreate = () => {
     setActiveEmployee(null);
@@ -184,35 +170,56 @@ export function EmployeesPageContent() {
         description={PAGE_DESCRIPTIONS.ADMIN_EMPLOYEES}
         actions={
           <>
-            <Button
+            <Button loading={exportMutation.isPending}
               variant="outline"
-              size="sm"
+              size="lg"
               onClick={() => exportMutation.mutate(filters)}
               disabled={exportMutation.isPending}
             >
-              <Download className="mr-2 size-4" />
-              Export CSV
+              <Download className="size-4" />
+              Export
             </Button>
-            <Button size="sm" onClick={openCreate}>
-              <Plus className="mr-2 size-4" />
+            <Button size="lg" onClick={openCreate}>
+              <Plus className="size-4" />
               Add employee
             </Button>
           </>
         }
       />
 
-      <Card className={UI_PANEL.filter}>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-          <div className="relative lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Card className="gap-0 py-0" aria-label="Employees">
+        <div className="flex flex-wrap gap-3 p-4">
+          <div className="relative min-w-0 flex-[2_1_260px]">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
             <Input
+              type="search"
               placeholder="Search name, email, phone…"
+              aria-label="Search employees"
               className="pl-9"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
+          <Input
+            className="w-auto flex-[1_1_160px]"
+            placeholder="Company"
+            aria-label="Company"
+            value={filters.companyName ?? ''}
+            onChange={(e) => dispatch(setEmployeeFilters({ companyName: e.target.value, page: 1 }))}
+          />
+          <Input
+            className="w-auto flex-[1_1_140px]"
+            placeholder="Country"
+            aria-label="Country"
+            value={filters.country ?? ''}
+            onChange={(e) => dispatch(setEmployeeFilters({ country: e.target.value, page: 1 }))}
+          />
           <Select
+            className="w-auto flex-[0_1_170px]"
+            aria-label="Status"
             value={filters.status ?? ''}
             onChange={(e) =>
               dispatch(
@@ -229,28 +236,7 @@ export function EmployeesPageContent() {
               </option>
             ))}
           </Select>
-          <Input
-            placeholder="Country"
-            value={filters.country ?? ''}
-            onChange={(e) => dispatch(setEmployeeFilters({ country: e.target.value, page: 1 }))}
-          />
-          <Input
-            placeholder="Company"
-            value={filters.companyName ?? ''}
-            onChange={(e) =>
-              dispatch(setEmployeeFilters({ companyName: e.target.value, page: 1 }))
-            }
-          />
         </div>
-        <div className="mt-3 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`mr-2 size-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
-      </Card>
-
-      <Card className={cn(UI_PANEL.table, 'gap-0 py-0')}>
         {selectedIds.length > 0 ? (
           <BulkActionBar
             count={selectedIds.length}
@@ -258,14 +244,7 @@ export function EmployeesPageContent() {
             onClear={() => dispatch(clearEmployeeSelection())}
           >
             <Button size="sm" variant="outline" onClick={() => setBulkStatusConfirm('active')}>
-              <UserCheck className="size-4" />
-              Active
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setBulkStatusConfirm('inactive')}>
-              Inactive
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setBulkStatusConfirm('suspended')}>
-              Suspended
+              Update status
             </Button>
             <Button
               size="sm"
@@ -273,135 +252,148 @@ export function EmployeesPageContent() {
               onClick={() => setBulkDeleteConfirmOpen(true)}
               disabled={bulkDeleteMutation.isPending}
             >
-              <Trash2 className="size-4" />
               Delete
             </Button>
           </BulkActionBar>
         ) : null}
-        {isError ? (
-          <div className="p-6">
-            <ErrorPanel
-              title="Failed to load employees"
-              message={
-                typeof error === 'object' && error !== null && 'message' in error
-                  ? String((error as { message: string }).message)
-                  : 'Something went wrong'
-              }
-              onRetry={() => refetch()}
-            />
-          </div>
-        ) : isLoading ? (
-          <div className="space-y-3 p-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        ) : employees.length === 0 ? (
-          <div className="space-y-4 p-8">
-            <EmptyState
-              title="No employees found"
-              description="Try adjusting filters or add a new employee."
-            />
-            <div className="flex justify-center">
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="mr-2 size-4" />
-                Add employee
-              </Button>
+        <div className="border-t border-border">
+          {isError ? (
+            <div className="p-6">
+              <ErrorPanel
+                title="Failed to load employees"
+                message={
+                  typeof error === 'object' && error !== null && 'message' in error
+                    ? String((error as { message: string }).message)
+                    : 'Something went wrong'
+                }
+                onRetry={() => refetch()}
+              />
             </div>
-          </div>
-        ) : (
-          <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id} data-state={selectedIds.includes(employee.id) ? 'selected' : undefined}>
-                    <TableCell>
+          ) : isLoading ? (
+            <TableRowsSkeleton rows={5} />
+          ) : employees.length === 0 ? (
+            <div className="space-y-4 p-8">
+              <EmptyState
+                title="No employees found"
+                description="Try adjusting filters or add a new employee."
+              />
+              <div className="flex justify-center">
+                <Button size="sm" onClick={openCreate}>
+                  <Plus className="mr-2 size-4" />
+                  Add employee
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Table className="min-w-[900px] animate-in fade-in-0 duration-300">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">
                       <input
                         type="checkbox"
-                        checked={selectedIds.includes(employee.id)}
-                        onChange={() => dispatch(toggleEmployeeSelection(employee.id))}
-                        aria-label={`Select ${employee.empName}`}
+                        checked={allSelected}
+                        onChange={toggleAll}
+                        aria-label="Select all"
                       />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <EmployeeAvatar
-                          employeeId={employee.id}
-                          name={employee.empName}
-                          hasProfilePhoto={Boolean(employee.profilePhoto)}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <div className="font-medium">{employee.empName}</div>
-                          <p className="truncate text-xs text-muted-foreground">{employee.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{employee.companyName}</TableCell>
-                    <TableCell>
-                      <p className="text-sm">{employee.phoneNo}</p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm">{employee.cityState}</p>
-                      <p className="text-xs text-muted-foreground">{employee.country}</p>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={employee.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openView(employee)}
-                          aria-label="View employee"
-                        >
-                          <Eye className="size-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(employee)} aria-label="Edit">
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openDelete(employee)}
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {employees.map((employee) => (
+                    <TableRow
+                      key={employee.id}
+                      data-state={selectedIds.includes(employee.id) ? 'selected' : undefined}
+                    >
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(employee.id)}
+                          onChange={() => dispatch(toggleEmployeeSelection(employee.id))}
+                          aria-label={`Select ${employee.empName}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <EmployeeAvatar
+                            employeeId={employee.id}
+                            name={employee.empName}
+                            hasProfilePhoto={Boolean(employee.profilePhoto)}
+                            size="sm"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-medium">{employee.empName}</div>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {employee.email}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{employee.companyName}</TableCell>
+                      <TableCell>
+                        <div className="whitespace-nowrap">{employee.phoneNo}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {!employee.whatsappNo
+                            ? '—'
+                            : employee.whatsappNo === employee.phoneNo
+                              ? 'WhatsApp same'
+                              : `WA ${employee.whatsappNo}`}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {[employee.cityState, employee.country].filter(Boolean).join(', ') || '—'}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={employee.status} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openView(employee)}
+                            aria-label="View employee"
+                          >
+                            <Eye className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEdit(employee)}
+                            aria-label="Edit"
+                          >
+                            <Pen className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openDelete(employee)}
+                            aria-label="Delete"
+                          >
+                            <Trash className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-            {meta ? (
-              <TablePagination
-                meta={meta}
-                onPageChange={(page) => dispatch(setEmployeeFilters({ page }))}
-              />
-            ) : null}
-          </>
-        )}
+              {meta ? (
+                <TablePagination
+                  meta={meta}
+                  onPageChange={(page) => dispatch(setEmployeeFilters({ page }))}
+                />
+              ) : null}
+            </>
+          )}
+        </div>
       </Card>
 
       <EmployeeDetailDialog
@@ -414,16 +406,18 @@ export function EmployeesPageContent() {
         }}
       />
 
-      <Dialog open={dialogMode === 'create' || dialogMode === 'edit'} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent className="max-w-3xl" onClose={closeDialog}>
-          <DialogHeader>
-            <DialogTitle>{dialogMode === 'create' ? 'Add employee' : 'Edit employee'}</DialogTitle>
-            <DialogDescription>
-              {dialogMode === 'create'
-                ? 'Create a new employee record with document and contact details.'
+      <Dialog
+        open={dialogMode === 'create' || dialogMode === 'edit'}
+        onOpenChange={(o) => !o && closeDialog()}
+      >
+        <DialogContent className="max-w-[760px]" onClose={closeDialog}>
+          <DialogIconHeader
+            icon={User}
+            title={dialogMode === 'create' ? 'Add employee' : 'Edit employee'}
+            description={dialogMode === 'create'
+                ? "Create the employee's record and portal login. Fields marked * are required."
                 : 'Update employee information. Leave password blank to keep unchanged.'}
-            </DialogDescription>
-          </DialogHeader>
+          />
           <DialogBody>
             <EmployeeForm
               mode={dialogMode === 'create' ? 'create' : 'edit'}
@@ -463,13 +457,25 @@ export function EmployeesPageContent() {
       <ConfirmDialog
         open={bulkStatusConfirm !== null}
         onOpenChange={(open) => !open && setBulkStatusConfirm(null)}
+        icon={Users}
         title="Update employee status"
-        description={`Set ${selectedIds.length} selected employee(s) to "${bulkStatusConfirm}"?`}
-        confirmText="Update status"
+        description={`Apply to ${selectedIds.length} selected employee${selectedIds.length === 1 ? '' : 's'}.`}
+        confirmText={`Update ${selectedIds.length} employee${selectedIds.length === 1 ? '' : 's'}`}
         loading={bulkStatusMutation.isPending}
         onConfirm={() => bulkStatusConfirm && handleBulkStatus(bulkStatusConfirm)}
-        onCancel={() => setBulkStatusConfirm(null)}
-      />
+      >
+        <Select
+          aria-label="New status"
+          value={bulkStatusConfirm ?? 'active'}
+          onChange={(e) => setBulkStatusConfirm(e.target.value as EmployeeStatus)}
+        >
+          {EMPLOYEE_STATUS_OPTIONS.filter((o) => o.value).map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+      </ConfirmDialog>
     </div>
   );
 }

@@ -31,6 +31,7 @@ export const queryKeys = {
     all: ['expenses'] as const,
     detail: (id: number) => ['expenses', id] as const,
     list: (filters?: ExpenseListFilters) => ['expenses', 'list', filters] as const,
+    summary: ['expenses', 'summary'] as const,
   },
   adminExpenses: {
     all: ['admin-expenses'] as const,
@@ -82,6 +83,9 @@ export const queryKeys = {
   },
   dashboard: {
     stats: ['dashboard', 'stats'] as const,
+    overview: ['dashboard', 'overview'] as const,
+    alerts: ['dashboard', 'alerts'] as const,
+    search: (q: string) => ['dashboard', 'search', q] as const,
   },
   catalog: {
     all: ['catalog'] as const,

@@ -1,5 +1,5 @@
 export function formatExpenseAmount(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'AED',
     minimumFractionDigits: 2,
@@ -14,14 +14,14 @@ export function parseExpenseDate(date: string): Date {
   return new Date(trimmed);
 }
 
-/** Display as DD/MM/YYYY (e.g. 17/05/2026) */
+export const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+/** Display as "07 Oct 2026" (design system date format). */
 export function formatExpenseDate(date: string): string {
   const parsed = parseExpenseDate(date);
   if (Number.isNaN(parsed.getTime())) return date;
   const day = String(parsed.getDate()).padStart(2, '0');
-  const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  const year = parsed.getFullYear();
-  return `${day}/${month}/${year}`;
+  return `${day} ${SHORT_MONTHS[parsed.getMonth()]} ${parsed.getFullYear()}`;
 }
 
 export function getTodayExpenseDate(): string {
