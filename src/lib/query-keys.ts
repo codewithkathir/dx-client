@@ -5,6 +5,11 @@ import type {
   AdminExpenseSummaryFilters,
 } from '@/types/expense.types';
 import type { ExpenseListFilters } from '@/types/expense.types';
+import type {
+  BillListFilters,
+  InvoiceListFilters,
+  PartyListFilters,
+} from '@/types/finance.types';
 
 export const queryKeys = {
   auth: {
@@ -52,6 +57,28 @@ export const queryKeys = {
       ['dropdowns', 'sub-sub-categories', categoryId, subCategoryId] as const,
     paymentMethods: ['dropdowns', 'payment-methods'] as const,
     whom: ['dropdowns', 'whom'] as const,
+  },
+  suppliers: {
+    all: ['suppliers'] as const,
+    list: (filters?: PartyListFilters) => ['suppliers', 'list', filters] as const,
+    options: ['suppliers', 'options'] as const,
+  },
+  payables: {
+    all: ['payables'] as const,
+    list: (filters?: BillListFilters) => ['payables', 'list', filters] as const,
+    detail: (id: number) => ['payables', 'detail', id] as const,
+    summary: ['payables', 'summary'] as const,
+  },
+  customers: {
+    all: ['customers'] as const,
+    list: (filters?: PartyListFilters) => ['customers', 'list', filters] as const,
+    options: ['customers', 'options'] as const,
+  },
+  receivables: {
+    all: ['receivables'] as const,
+    list: (filters?: InvoiceListFilters) => ['receivables', 'list', filters] as const,
+    detail: (id: number) => ['receivables', 'detail', id] as const,
+    summary: ['receivables', 'summary'] as const,
   },
   dashboard: {
     stats: ['dashboard', 'stats'] as const,

@@ -6,7 +6,6 @@ import type {
   AdminExpenseSummaryFilters,
   Expense,
   ExpenseListResult,
-  UpdateAdminExpenseStatusPayload,
 } from '@/types/expense.types';
 
 function buildListParams(
@@ -60,14 +59,14 @@ class AdminExpenseService extends BaseService {
     return this.get<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.DETAIL(id));
   }
 
-  updateStatus(
-    id: number,
-    payload: UpdateAdminExpenseStatusPayload,
-  ): Promise<Expense> {
-    return this.put<Expense>(
-      API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.STATUS(id),
-      payload,
-    );
+  /** Approving creates the employee's reimbursement bill in Payables. */
+  approve(id: number): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id));
+  }
+
+  /** Rejecting also cancels an unpaid reimbursement bill. */
+  reject(id: number): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.REJECT(id));
   }
 
   remove(id: number): Promise<void> {

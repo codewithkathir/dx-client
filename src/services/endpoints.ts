@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
     SUMMARY: `${V1}/admin/employee-expenses/summary`,
     DETAIL: (id: string | number) => `${V1}/admin/employee-expenses/${id}`,
     STATUS: (id: string | number) => `${V1}/admin/employee-expenses/${id}/status`,
+    APPROVE: (id: string | number) => `${V1}/admin/employee-expenses/${id}/approve`,
+    REJECT: (id: string | number) => `${V1}/admin/employee-expenses/${id}/reject`,
     SUPPORT_FILE: (id: string | number) =>
       `${V1}/admin/employee-expenses/${id}/support-file`,
   },
@@ -83,6 +85,37 @@ export const API_ENDPOINTS = {
   PAYMENT_METHODS: {
     LIST: `${V1}/admin/payment-methods`,
     DETAIL: (id: string | number) => `${V1}/admin/payment-methods/${id}`,
+  },
+  SUPPLIERS: {
+    LIST: `${V1}/admin/suppliers`,
+    OPTIONS: `${V1}/admin/suppliers/options`,
+    DETAIL: (id: string | number) => `${V1}/admin/suppliers/${id}`,
+  },
+  PAYABLES: {
+    LIST: `${V1}/admin/payables`,
+    SUMMARY: `${V1}/admin/payables/summary`,
+    DETAIL: (id: string | number) => `${V1}/admin/payables/${id}`,
+    ISSUE: (id: string | number) => `${V1}/admin/payables/${id}/issue`,
+    CANCEL: (id: string | number) => `${V1}/admin/payables/${id}/cancel`,
+    PAYMENTS: (id: string | number) => `${V1}/admin/payables/${id}/payments`,
+    PAYMENT: (id: string | number, paymentId: string | number) =>
+      `${V1}/admin/payables/${id}/payments/${paymentId}`,
+  },
+  CUSTOMERS: {
+    LIST: `${V1}/admin/customers`,
+    OPTIONS: `${V1}/admin/customers/options`,
+    DETAIL: (id: string | number) => `${V1}/admin/customers/${id}`,
+  },
+  RECEIVABLES: {
+    LIST: `${V1}/admin/receivables`,
+    SUMMARY: `${V1}/admin/receivables/summary`,
+    DETAIL: (id: string | number) => `${V1}/admin/receivables/${id}`,
+    PDF: (id: string | number) => `${V1}/admin/receivables/${id}/pdf`,
+    SEND: (id: string | number) => `${V1}/admin/receivables/${id}/send`,
+    CANCEL: (id: string | number) => `${V1}/admin/receivables/${id}/cancel`,
+    RECEIPTS: (id: string | number) => `${V1}/admin/receivables/${id}/receipts`,
+    RECEIPT: (id: string | number, receiptId: string | number) =>
+      `${V1}/admin/receivables/${id}/receipts/${receiptId}`,
   },
   HEALTH: '/health',
 } as const;

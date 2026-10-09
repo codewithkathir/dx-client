@@ -17,11 +17,13 @@ import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DateRangePicker } from '@/components/shared/DateRangePicker';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { AdminExpenseStatusBadge } from '@/features/admin-expenses/components/AdminExpenseStatusBadge';
+import {
+  ExpenseStageBadge,
+  getExpenseStage,
+} from '@/features/expenses/components/ExpenseStageBadge';
 import { AdminExpenseSummaryCards } from '@/features/admin-expenses/components/AdminExpenseSummaryCards';
 import {
   ADMIN_EXPENSE_DEFAULT_PAGE_SIZE,
-  ADMIN_EXPENSE_STATUS_LABELS,
   ADMIN_EXPENSE_STATUS_OPTIONS,
 } from '@/features/admin-expenses/constants/admin-expense.constants';
 import { useAdminExpenseMutations } from '@/features/admin-expenses/hooks/useAdminExpenseMutations';
@@ -73,7 +75,16 @@ import type {
   Expense,
 } from '@/types/expense.types';
 
-type DialogMode = 'view' | 'delete' | 'status' | null;
+type DialogMode = 'view' | 'delete' | null;
+type Decision = { expense: Expense; action: 'approve' | 'reject' };
+
+/** Pending claims can be approved; anything not yet paid or rejected can be rejected. */
+const canApprove = (e: Expense) => e.employeeStatus === 'pending' && e.adminStatus === 'pending';
+const canReject = (e: Expense) =>
+  e.employeeStatus !== 'rejected' &&
+  e.adminStatus !== 'rejected' &&
+  e.adminStatus !== 'paid' &&
+  (e.reimbursement?.amountPaid ?? 0) === 0;
 
 const defaultFilters: AdminExpenseListFilters = {
   page: 1,
@@ -89,11 +100,7 @@ export function AdminExpensesPageContent() {
   const [searchInput, setSearchInput] = useState('');
   const [dialogMode, setDialogMode] = useState<DialogMode>(null);
   const [active, setActive] = useState<Expense | null>(null);
-  const [statusSelection, setStatusSelection] = useState<AdminExpenseStatus>('pending');
-  const [statusConfirm, setStatusConfirm] = useState<{
-    expense: Expense;
-    adminStatus: AdminExpenseStatus;
-  } | null>(null);
+  const [decision, setDecision] = useState<Decision | null>(null);
 
   const debouncedSearch = useDebounce(searchInput);
 
@@ -118,7 +125,8 @@ export function AdminExpensesPageContent() {
     useAdminExpenses(filters);
   const { data: summary, isLoading: summaryLoading } =
     useAdminExpenseSummary(summaryFilters);
-  const { updateStatus, deleteExpense } = useAdminExpenseMutations();
+  const { approveExpense, rejectExpense, deleteExpense } = useAdminExpenseMutations();
+  const deciding = approveExpense.isPending || rejectExpense.isPending;
 
   const { data: categories = [] } = useAdminCategoryDropdown();
   const { data: whomOptions = [] } = useAdminWhomDropdown();
@@ -173,28 +181,15 @@ export function AdminExpensesPageContent() {
     setDialogMode('delete');
   };
 
-  const openStatus = (expense: Expense) => {
-    setActive(expense);
-    setStatusSelection(expense.adminStatus);
-    setDialogMode('status');
-  };
-
-  const requestStatusChange = (expense: Expense, adminStatus: AdminExpenseStatus) => {
-    if (expense.adminStatus === adminStatus) return;
-    setStatusConfirm({ expense, adminStatus });
-  };
-
-  const confirmStatusChange = () => {
-    if (!statusConfirm) return;
-    updateStatus.mutate(
-      { id: statusConfirm.expense.id, adminStatus: statusConfirm.adminStatus },
-      {
-        onSuccess: () => {
-          setStatusConfirm(null);
-          if (dialogMode === 'status') closeDialog();
-        },
+  const confirmDecision = () => {
+    if (!decision) return;
+    const mutation = decision.action === 'approve' ? approveExpense : rejectExpense;
+    mutation.mutate(decision.expense.id, {
+      onSuccess: (updated) => {
+        setDecision(null);
+        if (dialogMode === 'view') setActive(updated);
       },
-    );
+    });
   };
 
   return (
@@ -377,7 +372,7 @@ export function AdminExpensesPageContent() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <AdminExpenseStatusBadge status={expense.adminStatus} />
+                        <ExpenseStageBadge expense={expense} showBillLink />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -389,36 +384,41 @@ export function AdminExpensesPageContent() {
                           >
                             <Eye className="size-4" />
                           </Button>
-                          {expense.adminStatus !== 'paid' ? (
+                          {canApprove(expense) ? (
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Mark paid"
-                              disabled={updateStatus.isPending}
-                              onClick={() => requestStatusChange(expense, 'paid')}
+                              aria-label="Approve"
+                              title="Approve – creates a reimbursement bill"
+                              disabled={deciding}
+                              onClick={() => setDecision({ expense, action: 'approve' })}
                             >
                               <CheckCircle2 className="size-4 text-emerald-600" />
                             </Button>
                           ) : null}
-                          {expense.adminStatus !== 'rejected' ? (
+                          {canReject(expense) ? (
                             <Button
                               variant="ghost"
                               size="icon"
                               aria-label="Reject"
-                              disabled={updateStatus.isPending}
-                              onClick={() => requestStatusChange(expense, 'rejected')}
+                              title="Reject"
+                              disabled={deciding}
+                              onClick={() => setDecision({ expense, action: 'reject' })}
                             >
                               <XCircle className="size-4 text-destructive" />
                             </Button>
                           ) : null}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Delete"
-                            onClick={() => openDelete(expense)}
-                          >
-                            <Trash2 className="size-4 text-destructive" />
-                          </Button>
+                          {/* Money already paid out can't be deleted with the claim. */}
+                          {(expense.reimbursement?.amountPaid ?? 0) === 0 ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Delete"
+                              onClick={() => openDelete(expense)}
+                            >
+                              <Trash2 className="size-4 text-destructive" />
+                            </Button>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -441,7 +441,7 @@ export function AdminExpensesPageContent() {
           <DialogHeader>
             <DialogTitle>Expense details</DialogTitle>
             <DialogDescription>
-              Review claim details and update admin payment status.
+              Approve to create a reimbursement bill; it is paid from Payables.
             </DialogDescription>
           </DialogHeader>
           <DialogBody>
@@ -474,11 +474,23 @@ export function AdminExpensesPageContent() {
                   <dd>{subCategoryMap[active.subCategoryId] ?? active.subCategoryId}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Admin status</dt>
+                  <dt className="text-muted-foreground">Status</dt>
                   <dd>
-                    <AdminExpenseStatusBadge status={active.adminStatus} />
+                    <ExpenseStageBadge expense={active} showBillLink />
                   </dd>
                 </div>
+                {active.reimbursement && active.reimbursement.status !== 'cancelled' ? (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted-foreground">Reimbursed</dt>
+                    <dd>
+                      {formatExpenseAmount(active.reimbursement.amountPaid)} of{' '}
+                      {formatExpenseAmount(active.reimbursement.totalAmount)}
+                      {active.reimbursement.lastPaymentDate
+                        ? ` · last paid ${formatExpenseDate(active.reimbursement.lastPaymentDate)}`
+                        : ''}
+                    </dd>
+                  </div>
+                ) : null}
                 {active.description ? (
                   <div>
                     <dt className="text-muted-foreground">Description</dt>
@@ -505,45 +517,22 @@ export function AdminExpensesPageContent() {
             <Button variant="outline" onClick={closeDialog}>
               Close
             </Button>
-            {active ? (
-              <Button onClick={() => openStatus(active)}>Update status</Button>
+            {active && canReject(active) ? (
+              <Button
+                variant="outline"
+                disabled={deciding}
+                onClick={() => setDecision({ expense: active, action: 'reject' })}
+              >
+                <XCircle className="size-4" />
+                Reject
+              </Button>
             ) : null}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={dialogMode === 'status'} onOpenChange={(o) => !o && closeDialog()}>
-        <DialogContent onClose={closeDialog}>
-          <DialogHeader>
-            <DialogTitle>Update expense status</DialogTitle>
-            <DialogDescription>
-              Set the admin payment status for this expense claim.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody>
-            <Select
-              value={statusSelection}
-              onChange={(e) => setStatusSelection(e.target.value as AdminExpenseStatus)}
-            >
-              {ADMIN_EXPENSE_STATUS_OPTIONS.filter((o) => o.value).map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeDialog}>
-              Cancel
-            </Button>
-            <Button
-              disabled={!active}
-              onClick={() =>
-                active && requestStatusChange(active, statusSelection)
-              }
-            >
-              Save status
-            </Button>
+            {active && canApprove(active) ? (
+              <Button disabled={deciding} onClick={() => setDecision({ expense: active, action: 'approve' })}>
+                <CheckCircle2 className="size-4" />
+                Approve
+              </Button>
+            ) : null}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -552,7 +541,11 @@ export function AdminExpensesPageContent() {
         open={dialogMode === 'delete'}
         onOpenChange={(open) => !open && closeDialog()}
         title="Delete expense"
-        description="Soft-delete this expense claim? Employees will no longer see it in their list."
+        description={
+          active?.reimbursement && active.reimbursement.status !== 'cancelled'
+            ? `Delete this expense claim? Its unpaid reimbursement ${active.reimbursement.billNo} will be cancelled.`
+            : 'Soft-delete this expense claim? Employees will no longer see it in their list.'
+        }
         confirmText="Delete"
         variant="destructive"
         loading={deleteExpense.isPending}
@@ -566,18 +559,25 @@ export function AdminExpensesPageContent() {
       />
 
       <ConfirmDialog
-        open={statusConfirm !== null}
-        onOpenChange={(open) => !open && setStatusConfirm(null)}
-        title="Update expense status"
+        open={decision !== null}
+        onOpenChange={(open) => !open && setDecision(null)}
+        title={decision?.action === 'approve' ? 'Approve expense' : 'Reject expense'}
         description={
-          statusConfirm
-            ? `Change status to "${ADMIN_EXPENSE_STATUS_LABELS[statusConfirm.adminStatus]}" for this expense?`
+          decision
+            ? decision.action === 'approve'
+              ? `Approve ${formatExpenseAmount(decision.expense.amount)}? A reimbursement bill will be created in Payables, where the payment is recorded.`
+              : `Reject this ${formatExpenseAmount(decision.expense.amount)} claim?${
+                  getExpenseStage(decision.expense).label.startsWith('Approved')
+                    ? ' Its unpaid reimbursement bill will be cancelled.'
+                    : ''
+                }`
             : ''
         }
-        confirmText="Update status"
-        loading={updateStatus.isPending}
-        onConfirm={confirmStatusChange}
-        onCancel={() => setStatusConfirm(null)}
+        confirmText={decision?.action === 'approve' ? 'Approve' : 'Reject'}
+        variant={decision?.action === 'reject' ? 'destructive' : undefined}
+        loading={deciding}
+        onConfirm={confirmDecision}
+        onCancel={() => setDecision(null)}
       />
     </div>
   );

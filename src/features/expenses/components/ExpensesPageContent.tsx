@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
 import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
 import { ExpenseForm } from '@/features/expenses/components/ExpenseForm';
-import { ExpenseStatusBadge } from '@/features/expenses/components/ExpenseStatusBadge';
+import { ExpenseStageBadge } from '@/features/expenses/components/ExpenseStageBadge';
 import { EXPENSE_DEFAULT_PAGE_SIZE } from '@/features/expenses/constants/expense.constants';
 import { useExpenseMutations } from '@/features/expenses/hooks/useExpenseMutations';
 import {
@@ -267,7 +267,7 @@ export function ExpensesPageContent() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <ExpenseStatusBadge status={expense.employeeStatus} />
+                        <ExpenseStageBadge expense={expense} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -279,22 +279,27 @@ export function ExpensesPageContent() {
                           >
                             <Eye className="size-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Edit"
-                            onClick={() => openEdit(expense)}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Delete"
-                            onClick={() => openDelete(expense)}
-                          >
-                            <Trash2 className="size-4 text-destructive" />
-                          </Button>
+                          {/* Once approved or rejected, a claim is locked (the server enforces this too). */}
+                          {expense.employeeStatus === 'pending' ? (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Edit"
+                                onClick={() => openEdit(expense)}
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Delete"
+                                onClick={() => openDelete(expense)}
+                              >
+                                <Trash2 className="size-4 text-destructive" />
+                              </Button>
+                            </>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -380,7 +385,7 @@ export function ExpensesPageContent() {
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted-foreground">Status</dt>
                   <dd>
-                    <ExpenseStatusBadge status={active.employeeStatus} />
+                    <ExpenseStageBadge expense={active} />
                   </dd>
                 </div>
                 {active.description ? (

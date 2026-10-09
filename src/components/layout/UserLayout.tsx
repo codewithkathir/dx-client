@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Package, Receipt, User } from 'lucide-react';
@@ -24,10 +25,17 @@ interface UserLayoutProps {
 export function UserLayout({ children }: UserLayoutProps) {
   const pathname = usePathname();
   const logoutMutation = useLogout(AUTH_PORTAL.USER);
+  const mainRef = useRef<HTMLElement>(null);
 
+  // Only <main> scrolls, so start each page at the top of it.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  // Fixed frame: header (and the mobile bottom nav) stay put; only <main> scrolls.
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <header className="shrink-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
           <span className="font-semibold text-sidebar-foreground">DX Employee</span>
           <LayoutUserMenu
@@ -40,9 +48,11 @@ export function UserLayout({ children }: UserLayoutProps) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 bg-background px-4 py-6">{children}</main>
+      <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-background">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6">{children}</div>
+      </main>
 
-      <nav className="sticky bottom-0 border-t border-sidebar-border bg-sidebar md:hidden">
+      <nav className="shrink-0 border-t border-sidebar-border bg-sidebar md:hidden">
         <div className="mx-auto flex max-w-5xl justify-around py-2">
           {USER_NAV.map(({ href, label, icon: Icon }) => {
             const isActive = pathname.startsWith(href);

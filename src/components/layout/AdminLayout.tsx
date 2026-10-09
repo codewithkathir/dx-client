@@ -1,10 +1,15 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Briefcase,
+  Building2,
   FolderTree,
+  HandCoins,
+  Landmark,
+  Users,
   LayoutDashboard,
   Menu,
   Settings,
@@ -26,6 +31,10 @@ const ADMIN_NAV = [
   { href: ADMIN_ROUTES.EMPLOYEES, label: 'Employees', icon: Briefcase },
   { href: ADMIN_ROUTES.CATEGORIES, label: 'Categories', icon: FolderTree },
   { href: ADMIN_ROUTES.EXPENSES, label: 'Expenses', icon: Wallet },
+  { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },
+  { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building2 },
+  { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
+  { href: ADMIN_ROUTES.CUSTOMERS, label: 'Customers', icon: Users },
   { href: ADMIN_ROUTES.SETTINGS, label: 'Settings', icon: Settings },
 ] as const;
 
@@ -38,19 +47,26 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const dispatch = useAppDispatch();
   const isSidebarOpen = useAppSelector(selectSidebarOpen);
   const logoutMutation = useLogout(AUTH_PORTAL.ADMIN);
+  const mainRef = useRef<HTMLElement>(null);
 
+  // Only <main> scrolls, so start each page at the top of it.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  // Fixed frame: sidebar and header stay put; only <main> scrolls.
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-dvh overflow-hidden">
       <aside
         className={cn(
-          'hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-200 lg:flex lg:flex-col',
+          'hidden shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-200 lg:flex lg:flex-col',
           isSidebarOpen ? 'w-64' : 'w-16',
         )}
       >
-        <div className="flex h-14 items-center border-b border-sidebar-border px-4 text-sm font-semibold text-sidebar-foreground">
+        <div className="flex h-14 shrink-0 items-center border-b border-sidebar-border px-4 text-sm font-semibold text-sidebar-foreground">
           {isSidebarOpen ? 'Admin Portal' : 'AP'}
         </div>
-        <nav className="flex flex-1 flex-col gap-1 p-2">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2">
           {ADMIN_NAV.map(({ href, label, icon: Icon }) => {
             const isActive = pathname.startsWith(href);
             return (
@@ -78,8 +94,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
       </aside>
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex h-14 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
           <Button
             variant="ghost"
             size="icon"
@@ -100,7 +116,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             onConfirmSignOut={() => logoutMutation.mutate()}
           />
         </header>
-        <main className="flex-1 overflow-auto bg-background p-6">{children}</main>
+        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-background p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

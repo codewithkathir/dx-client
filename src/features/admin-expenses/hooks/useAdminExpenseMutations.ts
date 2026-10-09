@@ -7,22 +7,31 @@ import { adminExpenseService } from '@/features/admin-expenses/services/admin-ex
 import { useApiError } from '@/hooks/useApiError';
 import { queryKeys } from '@/lib/query-keys';
 import { SUCCESS_MESSAGES } from '@/messages/success.messages';
-import type { AdminExpenseStatus } from '@/types/expense.types';
 
 export function useAdminExpenseMutations() {
   const queryClient = useQueryClient();
   const { handleError } = useApiError();
 
+  // Decisions create or cancel reimbursement bills, so Payables is refreshed too.
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.adminExpenses.all });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.payables.all });
   };
 
-  const updateStatus = useMutation({
-    mutationFn: ({ id, adminStatus }: { id: number; adminStatus: AdminExpenseStatus }) =>
-      adminExpenseService.updateStatus(id, { adminStatus }),
+  const approveExpense = useMutation({
+    mutationFn: (id: number) => adminExpenseService.approve(id),
     onSuccess: () => {
       invalidate();
-      toast.success(SUCCESS_MESSAGES.UPDATE);
+      toast.success(SUCCESS_MESSAGES.EXPENSE_APPROVED);
+    },
+    onError: (err) => handleError(err),
+  });
+
+  const rejectExpense = useMutation({
+    mutationFn: (id: number) => adminExpenseService.reject(id),
+    onSuccess: () => {
+      invalidate();
+      toast.success(SUCCESS_MESSAGES.EXPENSE_REJECTED);
     },
     onError: (err) => handleError(err),
   });
@@ -36,5 +45,5 @@ export function useAdminExpenseMutations() {
     onError: (err) => handleError(err),
   });
 
-  return { updateStatus, deleteExpense };
+  return { approveExpense, rejectExpense, deleteExpense };
 }

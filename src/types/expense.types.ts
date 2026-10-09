@@ -1,3 +1,4 @@
+import type { ExpenseReimbursement } from '@/types/finance.types';
 import type { PaginationMeta } from '@/types/common.types';
 
 export type EmployeeExpenseStatus = 'pending' | 'approved' | 'rejected';
@@ -18,6 +19,8 @@ export interface Expense {
   supportFile: string | null;
   employeeStatus: EmployeeExpenseStatus;
   adminStatus: AdminExpenseStatus;
+  /** Reimbursement bill created when the expense was approved. */
+  reimbursement?: ExpenseReimbursement | null;
   createdAt: string;
   updatedAt: string;
 }
