@@ -253,14 +253,16 @@ export function AdminExpensesPageContent() {
                     <TableCell className="whitespace-nowrap">{lookups.paymentMap[expense.paymentMethodId] ?? '—'}</TableCell>
                     <TableCell>
                       {expense.supportFile ? (
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-primary hover:text-primary"
+                          aria-label={`View attachment ${fileName(expense.supportFile)}`}
+                          title={fileName(expense.supportFile)}
                           onClick={() => setViewing(expense)}
-                          className="inline-flex max-w-36 items-center gap-1 text-[13px] text-primary hover:underline"
                         >
-                          <Paperclip className="size-3.5 shrink-0" aria-hidden />
-                          <span className="truncate">{fileName(expense.supportFile)}</span>
-                        </button>
+                          <Paperclip className="size-4" />
+                        </Button>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

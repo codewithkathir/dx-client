@@ -27,7 +27,8 @@ export function EmployeeHomeContent() {
 
   return (
     <div className="flex flex-col gap-5 px-5 pb-6">
-      <header className="flex items-center gap-3 pt-5">
+      {/* Stays pinned while the rest of the screen scrolls. */}
+      <header className="sticky top-0 z-10 -mx-5 flex items-center gap-3 bg-background px-5 pt-5 pb-2">
         {/* eslint-disable-next-line @next/next/no-img-element -- static SVG mark */}
         <img src="/brand/dx-mark.svg" alt="DX Enterprise" className="size-9 shrink-0" />
         <div className="min-w-0 flex-1">

@@ -1,3 +1,4 @@
+import { SHORT_MONTHS } from '@/features/expenses/utils/expense.utils';
 import type { Expense, ExpenseStage } from '@/types/expense.types';
 
 /** Same rules as the server's stage filter: submitted → approved → paid, or rejected. */
@@ -21,10 +22,10 @@ export function claimTitle(description: string | null, fallback: string): string
   return short.length > 48 ? `${short.slice(0, 47)}…` : short;
 }
 
-/** "2026-10-07" → "07 Oct" */
+/** "2026-10-07" → "07 Oct" (fixed English month names: some locales print "Sept"). */
 export function shortDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
-  return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));
+  const [, m, d] = iso.split('-').map(Number) as [number, number, number];
+  return `${String(d).padStart(2, '0')} ${SHORT_MONTHS[m - 1]}`;
 }
 
 /** "2026-10-07" → "October 2026" */

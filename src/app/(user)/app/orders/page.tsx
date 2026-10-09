@@ -7,7 +7,7 @@ import { USER_ROUTES } from '@/constants/routes.constants';
 export default function UserOrdersPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex flex-col gap-1 px-5 pt-5 pb-3">
+      <header className="sticky top-0 z-10 flex flex-col gap-1 bg-background px-5 pt-5 pb-3">
         <h1 className="text-2xl font-semibold tracking-[-0.025em]">Orders</h1>
         <p className="text-[13px] text-muted-foreground">Your orders and requests will appear here.</p>
       </header>
