@@ -61,6 +61,16 @@ class PayableService extends BaseService {
     return super.delete<void>(API_ENDPOINTS.PAYABLES.DETAIL(id));
   }
 
+  uploadAttachment(id: number, file: File): Promise<BillDetail> {
+    const form = new FormData();
+    form.append('attachment', file);
+    return this.post<BillDetail>(API_ENDPOINTS.PAYABLES.ATTACHMENT(id), form);
+  }
+
+  removeAttachment(id: number): Promise<BillDetail> {
+    return super.delete<BillDetail>(API_ENDPOINTS.PAYABLES.ATTACHMENT(id));
+  }
+
   recordPayment(id: number, payload: PaymentPayload): Promise<BillDetail> {
     return this.post<BillDetail>(API_ENDPOINTS.PAYABLES.PAYMENTS(id), payload);
   }

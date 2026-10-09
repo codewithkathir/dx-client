@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string | number) => `${V1}/admin/payables/${id}`,
     ISSUE: (id: string | number) => `${V1}/admin/payables/${id}/issue`,
     CANCEL: (id: string | number) => `${V1}/admin/payables/${id}/cancel`,
+    ATTACHMENT: (id: string | number) => `${V1}/admin/payables/${id}/attachment`,
     PAYMENTS: (id: string | number) => `${V1}/admin/payables/${id}/payments`,
     PAYMENT: (id: string | number, paymentId: string | number) =>
       `${V1}/admin/payables/${id}/payments/${paymentId}`,

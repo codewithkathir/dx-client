@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Download, Plus, Search } from 'lucide-react';
+import { Download, Paperclip, Plus, Search } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
@@ -291,6 +291,9 @@ export function PayablesPageContent() {
                       <button type="button" onClick={() => setOpenBill(bill.id)} className="font-semibold text-primary hover:underline">
                         {bill.billNo}
                       </button>
+                      {bill.attachment ? (
+                        <Paperclip className="ml-1.5 inline size-3.5 text-muted-foreground" aria-label="Has document" />
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       {bill.payeeName ?? '—'}

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
+import { nullableText, requiredText } from '@/lib/validation';
 
 const catalogStatusSchema = z.enum(['active', 'inactive']);
 
 export const categoryFormSchema = z.object({
-  name: z.string().min(1, VALIDATION_MESSAGES.REQUIRED).max(200),
-  description: z.string().max(2000).optional().nullable(),
+  name: requiredText('Name', 200),
+  description: nullableText('Description', 2000),
   status: catalogStatusSchema,
 });
 

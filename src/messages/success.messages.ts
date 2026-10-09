@@ -14,6 +14,8 @@ export const SUCCESS_MESSAGES = {
   BILL_CANCELLED: 'Bill cancelled.',
   PAYMENT_RECORDED: 'Payment recorded.',
   PAYMENT_DELETED: 'Payment deleted.',
+  ATTACHMENT_UPLOADED: 'Document attached.',
+  ATTACHMENT_REMOVED: 'Document removed.',
   INVOICE_SENT: 'Invoice marked as sent.',
   INVOICE_CANCELLED: 'Invoice cancelled.',
   RECEIPT_RECORDED: 'Receipt recorded.',
