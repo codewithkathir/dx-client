@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -6,15 +5,14 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
         timeout(time: 30, unit: 'MINUTES')
-        skipDefaultCheckout(true)
     }
 
     environment {
-        APP_NAME = 'dx-client-qa'
-        APP_ENV = 'qa'
-        APP_PORT = '7003'
-        APP_DIR = '/var/www/projects/dx/dx-client-qa'
-        ENV_FILE = '/var/www/projects/dx/dx-client-qa/.env.qa'
+        APP_NAME      = 'dx-client-qa'
+        APP_ENV       = 'qa'
+        APP_PORT      = '7003'
+        APP_DIR       = '/var/www/projects/dx/dx-client-qa'
+        ENV_FILE      = '/var/www/projects/dx/dx-client-qa/.env.qa'
         DEPLOY_HELPER = '/usr/local/sbin/dx-deploy-client-qa'
     }
 
@@ -23,7 +21,6 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
-                sh 'git log -1 --oneline'
             }
         }
 
@@ -33,42 +30,55 @@ pipeline {
             }
         }
 
-        stage('Lint and Typecheck') {
+        stage('Lint') {
             steps {
-                sh '''
-                    npm run lint
-                    npm run typecheck
-                '''
+                sh 'npm run lint'
             }
         }
 
-        stage('Build') {
+        stage('Type Check') {
+            steps {
+                sh 'npm run typecheck'
+            }
+        }
+
+        stage('Build QA') {
             steps {
                 sh '''
                     set -eu
 
-                    test -f "$ENV_FILE"
+                    test -f "$ENV_FILE" || {
+                        echo "ERROR: QA environment file is missing"
+                        exit 1
+                    }
+
                     cp "$ENV_FILE" .env.qa
 
                     APP_ENV=qa npm run build:qa
 
-                    test -f .next/standalone/server.js
-                    test -d .next/static
+                    test -f .next/standalone/server.js || {
+                        echo "ERROR: Next.js standalone server was not generated"
+                        exit 1
+                    }
 
                     mkdir -p .next/standalone/.next
-                    cp -a .next/static .next/standalone/.next/
+
+                    cp -a .next/static .next/standalone/.next/static
 
                     if [ -d public ]; then
                         cp -a public .next/standalone/public
                     fi
+
+                    echo "QA frontend build completed"
                 '''
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy QA') {
             steps {
                 sh '''
                     set -eu
+                    test -x "$DEPLOY_HELPER"
                     sudo -n "$DEPLOY_HELPER"
                 '''
             }
@@ -79,16 +89,19 @@ pipeline {
                 sh '''
                     set -eu
 
-                    for i in $(seq 1 15); do
-                        if curl -fsS -o /dev/null \
-                            "http://127.0.0.1:${APP_PORT}/"; then
-                            echo "QA frontend health check passed."
+                    for attempt in $(seq 1 15); do
+                        if curl --fail --silent --show-error \
+                            http://127.0.0.1:${APP_PORT}/ \
+                            -o /dev/null; then
+                            echo "QA frontend health check passed"
                             exit 0
                         fi
+
+                        echo "Waiting for QA frontend (attempt ${attempt}/15)"
                         sleep 2
                     done
 
-                    echo "QA frontend health check failed."
+                    echo "ERROR: QA frontend health check failed"
                     exit 1
                 '''
             }
@@ -101,9 +114,6 @@ pipeline {
         }
         failure {
             echo 'DX Client QA pipeline failed. Check the stage logs.'
-        }
-        always {
-            echo 'DX Client QA pipeline finished.'
         }
     }
 }
