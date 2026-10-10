@@ -153,7 +153,7 @@ export function AdminSettingsPageContent() {
   const [editing, setEditing] = useState(false);
 
   return (
-    <section className="max-w-[976px] space-y-5">
+    <section className="space-y-5">
       <PageHeader title={PAGE_TITLES.ADMIN_SETTINGS} description={PAGE_DESCRIPTIONS.ADMIN_SETTINGS} />
 
       {isError ? <ErrorPanel message={error?.message ?? 'Failed to load profile'} onRetry={() => refetch()} /> : null}

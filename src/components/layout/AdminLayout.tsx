@@ -74,7 +74,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <LoadingBar />
           <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto">
             {/* Keyed by route so each page fades in on navigation. */}
-            <div key={pathname} className="page-in mx-auto w-full max-w-[1280px] px-4 pt-7 pb-10 sm:px-8">
+            <div key={pathname} className="page-in w-full px-4 pt-7 pb-10 sm:px-8">
               {children}
             </div>
           </main>
