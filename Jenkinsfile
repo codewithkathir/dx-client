@@ -103,7 +103,7 @@ pipeline {
             echo 'DX Client Dev pipeline failed. Check the stage logs.'
         }
         always {
-            echo 'DX Client Dev pipeline finished.'
+            echo 'DX Client Dev pipeline finished thank you.'
         }
     }
 }
