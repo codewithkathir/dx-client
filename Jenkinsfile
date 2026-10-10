@@ -78,7 +78,7 @@ pipeline {
             steps {
                 sh '''
                     set -eu
-                    test -x "$DEPLOY_HELPER"
+                    test -f "$DEPLOY_HELPER"
                     sudo -n "$DEPLOY_HELPER"
                 '''
             }
