@@ -1,30 +1,23 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { FileUp, Paperclip, RefreshCw, Trash } from 'lucide-react';
+import { useId, useState } from 'react';
+import { CircleAlert, FileUp, Paperclip, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { FilePreview } from '@/components/shared/FilePreview';
+import { FileSourcePicker } from '@/components/shared/FileSourcePicker';
 import { friendlyFileName } from '@/components/shared/file-blob';
 import { Button } from '@/components/ui/button';
-import { ACCEPTED_SUPPORT_FILE_TYPES } from '@/features/expenses/constants/expense.constants';
+import { ACCEPTED_SUPPORT_FILE_TYPES, MAX_SUPPORT_FILE_MB } from '@/features/expenses/constants/expense.constants';
+import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
 import { usePayableMutations } from '@/features/payables/hooks/usePayables';
+import { compressImage } from '@/lib/image-compress';
 import { cn } from '@/lib/utils';
-import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
 import { API_ENDPOINTS } from '@/services/endpoints';
 import type { BillDetail } from '@/types/finance.types';
 
-/** Matches the server's MAX_FILE_SIZE default. */
-const MAX_FILE_MB = 5;
-const ACCEPTED_EXTENSIONS = new Set(ACCEPTED_SUPPORT_FILE_TYPES.split(','));
 const LABEL = 'Bill document';
-
-function validateFile(file: File): string | null {
-  const ext = `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`;
-  if (!ACCEPTED_EXTENSIONS.has(ext)) return VALIDATION_MESSAGES.FILE_TYPE(LABEL);
-  if (file.size > MAX_FILE_MB * 1024 * 1024) return VALIDATION_MESSAGES.FILE_TOO_LARGE(LABEL, MAX_FILE_MB);
-  return null;
-}
+const MAX_BYTES = MAX_SUPPORT_FILE_MB * 1024 * 1024;
 
 interface BillAttachmentSectionProps {
   bill: BillDetail;
@@ -33,7 +26,7 @@ interface BillAttachmentSectionProps {
 /** The supplier's bill (scan/PDF) for manual bills, or the claim receipt for reimbursements. */
 export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
   const { uploadAttachment, removeAttachment } = usePayableMutations();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const errorId = useId();
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -44,25 +37,11 @@ export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
 
   const upload = (file: File | undefined) => {
     if (!file) return;
-    const problem = validateFile(file);
+    const problem = validateSupportFile(file, LABEL);
     setError(problem);
     if (problem) return;
     uploadAttachment.mutate({ id: bill.id, file });
   };
-
-  const picker = (
-    <input
-      ref={inputRef}
-      type="file"
-      className="sr-only"
-      accept={ACCEPTED_SUPPORT_FILE_TYPES}
-      aria-label={LABEL}
-      onChange={(e) => {
-        upload(e.target.files?.[0]);
-        e.target.value = '';
-      }}
-    />
-  );
 
   return (
     <section aria-labelledby="bill-document" className="flex flex-col gap-2">
@@ -85,11 +64,16 @@ export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
           actions={
             canManage && attachment.source === 'bill' ? (
               <>
-                {picker}
-                <Button variant="outline" size="sm" disabled={uploading} loading={uploading} onClick={() => inputRef.current?.click()}>
-                  {uploading ? null : <RefreshCw className="size-4" />}
-                  Replace
-                </Button>
+                <FileSourcePicker
+                  accept={ACCEPTED_SUPPORT_FILE_TYPES}
+                  onPick={upload}
+                  size="sm"
+                  disabled={uploading}
+                  deviceLabel={uploading ? 'Uploading…' : 'Replace'}
+                  cameraTitle={`Photo of bill ${bill.billNo}`}
+                  maxBytes={MAX_BYTES}
+                  describedBy={error ? errorId : undefined}
+                />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -105,34 +89,41 @@ export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
           }
         />
       ) : canManage ? (
-        <>
-          {picker}
-          <button
-            type="button"
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            const dropped = e.dataTransfer.files?.[0];
+            if (dropped) void compressImage(dropped, { maxBytes: MAX_BYTES }).then(upload);
+          }}
+          className={cn(
+            'flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center transition-colors',
+            dragging ? 'border-primary bg-brand-blue-50' : 'border-border',
+            error && 'border-destructive',
+            uploading && 'opacity-60',
+          )}
+        >
+          <FileUp className="size-7 text-muted-foreground" aria-hidden />
+          <span className="text-sm font-medium">{uploading ? 'Uploading…' : 'Attach the supplier’s bill'}</span>
+          <span className="text-xs text-muted-foreground">
+            Take a photo, choose a file or drop it here · JPG, PNG, WebP, PDF, Word · up to {MAX_SUPPORT_FILE_MB} MB
+          </span>
+          <FileSourcePicker
+            accept={ACCEPTED_SUPPORT_FILE_TYPES}
+            onPick={upload}
+            size="sm"
+            className="mt-1 justify-center"
             disabled={uploading}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragging(false);
-              upload(e.dataTransfer.files?.[0]);
-            }}
-            className={cn(
-              'flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
-              dragging ? 'border-primary bg-brand-blue-50' : 'border-border hover:bg-muted/50',
-              error && 'border-destructive',
-            )}
-          >
-            <FileUp className="size-7 text-muted-foreground" aria-hidden />
-            <span className="text-sm font-medium">{uploading ? 'Uploading…' : 'Attach the supplier’s bill'}</span>
-            <span className="text-xs text-muted-foreground">Drop a file here or click to browse · JPG, PNG, WebP, PDF, Word · up to {MAX_FILE_MB} MB</span>
-          </button>
-        </>
+            cameraTitle={`Photo of bill ${bill.billNo}`}
+                  maxBytes={MAX_BYTES}
+            describedBy={error ? errorId : undefined}
+          />
+        </div>
       ) : (
         <div className="flex items-center gap-2 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
           <Paperclip className="size-4" aria-hidden />
@@ -140,7 +131,12 @@ export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
         </div>
       )}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p id={errorId} role="alert" className="flex items-start gap-1.5 text-[13px] text-destructive">
+          <CircleAlert className="mt-px size-4 shrink-0" aria-hidden />
+          {error}
+        </p>
+      ) : null}
 
       <ConfirmDialog
         open={confirmRemove}

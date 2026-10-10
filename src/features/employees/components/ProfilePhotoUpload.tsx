@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Camera, X } from 'lucide-react';
 
 import { FormField } from '@/components/forms/FormField';
+import { FileSourcePicker } from '@/components/shared/FileSourcePicker';
+import { formatSize } from '@/components/shared/file-blob';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/services/api';
 import { cn } from '@/lib/utils';
+import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -29,7 +32,6 @@ export function ProfilePhotoUpload({
   required,
   error,
 }: ProfilePhotoUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [loaded, setLoaded] = useState<{ source: File | string; src: string | null } | null>(
     null,
   );
@@ -94,7 +96,7 @@ export function ProfilePhotoUpload({
     }
 
     if (file.size > MAX_BYTES) {
-      setLocalError('Image must be 2 MB or smaller');
+      setLocalError(VALIDATION_MESSAGES.FILE_TOO_LARGE('Photo', MAX_BYTES / (1024 * 1024), formatSize(file.size)));
       onChange(null);
       return;
     }
@@ -105,19 +107,15 @@ export function ProfilePhotoUpload({
   return (
     <FormField
       label="Profile photo"
-      htmlFor="profilePhoto"
       required={required}
       error={error ?? localError}
     >
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
+        <div
           className={cn(
-            'relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/40 transition-colors',
-            'hover:border-primary/40 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'relative flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted/40',
+            error ?? localError ? 'border-destructive' : 'border-border',
           )}
-          aria-label="Upload profile photo"
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -125,26 +123,29 @@ export function ProfilePhotoUpload({
           ) : (
             <Camera className="size-8 text-muted-foreground" aria-hidden />
           )}
-        </button>
+        </div>
 
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
             Square photo recommended (4×4 ratio). Max 2 MB. JPEG, PNG, or WebP.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-              {preview ? 'Change photo' : 'Upload photo'}
-            </Button>
+            <FileSourcePicker
+              accept={ACCEPTED_TYPES.join(',')}
+              onPick={handleFile}
+              facing="user"
+              size="sm"
+              cameraTitle="Take a profile photo"
+              maxBytes={MAX_BYTES}
+              maxDimension={1024}
+            />
             {/* Only a newly picked file can be removed; there is no API to delete a saved photo. */}
             {value ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  handleFile(null);
-                  if (inputRef.current) inputRef.current.value = '';
-                }}
+                onClick={() => handleFile(null)}
               >
                 <X className="size-4" />
                 Remove
@@ -153,14 +154,6 @@ export function ProfilePhotoUpload({
           </div>
         </div>
 
-        <input
-          ref={inputRef}
-          id="profilePhoto"
-          type="file"
-          accept={ACCEPTED_TYPES.join(',')}
-          className="sr-only"
-          onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-        />
       </div>
     </FormField>
   );

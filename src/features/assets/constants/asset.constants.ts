@@ -16,6 +16,11 @@ import {
 
 import type { AssetCategory, AssetCondition, AssetStatus, UnassignedAssetStatus } from '@/types/asset.types';
 
+/** Matches the server: JPG/PNG/WebP, up to 5 MB each, 6 photos per asset. */
+export const ASSET_IMAGE_ACCEPT = '.jpg,.jpeg,.png,.webp';
+export const ASSET_IMAGE_MAX_MB = 5;
+export const ASSET_IMAGE_MAX_COUNT = 6;
+
 export const ASSET_CATEGORY_LABELS: Record<AssetCategory, string> = {
   laptop: 'Laptop',
   desktop: 'Desktop',

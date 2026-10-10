@@ -44,6 +44,9 @@ export interface Asset {
   status: AssetStatus;
   notes: string | null;
   currentAssignment: CurrentAssignment | null;
+  /** First photo, for list thumbnails. */
+  coverImageId: number | null;
+  imageCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,8 +68,17 @@ export interface AssetAssignment {
   returnedByName: string | null;
 }
 
+export interface AssetImage {
+  id: number;
+  originalName: string | null;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 export interface AssetDetail extends Asset {
   history: AssetAssignment[];
+  images: AssetImage[];
 }
 
 export interface AssetSummary {
@@ -141,6 +153,7 @@ export interface MyAsset {
   returnedDate: string | null;
   conditionIn: AssetCondition | null;
   returnNotes: string | null;
+  images: AssetImage[];
 }
 
 export interface MyAssets {

@@ -10,11 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AssetIcon } from '@/features/assets/components/AssetIcon';
+import { AssetPhotos } from '@/features/assets/components/AssetPhotos';
+import { AssetThumb } from '@/features/assets/components/AssetThumb';
 import { ASSET_CATEGORY_LABELS, ASSET_CONDITION_LABELS } from '@/features/assets/constants/asset.constants';
 import { useAcknowledgeAsset, useMyAssets } from '@/features/assets/hooks/useAssets';
 import { shortDate } from '@/features/expenses/utils/claim.utils';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import type { MyAsset } from '@/types/asset.types';
 import { todayIso } from '@/utils/money.utils';
 
@@ -31,7 +34,15 @@ function AssetRow({ asset, onOpen }: { asset: MyAsset; onOpen: () => void }) {
       onClick={onOpen}
       className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors not-first:border-t not-first:border-border hover:bg-muted/50"
     >
-      <AssetIcon category={asset.category} size="lg" />
+      {asset.images[0] ? (
+        <AssetThumb
+          src={API_ENDPOINTS.EMPLOYEE_ASSETS.IMAGE(asset.assignmentId, asset.images[0].id)}
+          alt=""
+          className="size-11 shrink-0 rounded-xl"
+        />
+      ) : (
+        <AssetIcon category={asset.category} size="lg" />
+      )}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-medium">{asset.name}</span>
         <span className="mt-0.5 mb-1.5 block truncate text-xs text-muted-foreground">
@@ -87,6 +98,15 @@ function AssetSheet({ asset, onClose }: { asset: MyAsset | null; onClose: () => 
         <div className="rounded-xl bg-status-danger px-3.5 py-3 text-sm text-status-danger-ink">
           This was due back on {formatExpenseDate(asset.expectedReturnDate!)}. Please return it to your administrator.
         </div>
+      ) : null}
+
+      {asset.images.length > 0 ? (
+        <AssetPhotos
+          compact
+          assetName={asset.name}
+          images={asset.images}
+          srcFor={(imageId) => API_ENDPOINTS.EMPLOYEE_ASSETS.IMAGE(asset.assignmentId, imageId)}
+        />
       ) : null}
 
       <dl className="rounded-[14px] border border-border px-4">

@@ -78,7 +78,27 @@ export function useAssetMutations() {
     onError: (err) => handleError(err),
   });
 
-  return { createAsset, updateAsset, deleteAsset, assignAsset, returnAsset };
+  const addImage = useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => assetService.addImage(id, file),
+    onSuccess: (asset) => {
+      queryClient.setQueryData(queryKeys.assets.detail(asset.id), asset);
+      invalidate();
+      toast.success('Photo added');
+    },
+    onError: (err) => handleError(err),
+  });
+
+  const removeImage = useMutation({
+    mutationFn: ({ id, imageId }: { id: number; imageId: number }) => assetService.removeImage(id, imageId),
+    onSuccess: (asset) => {
+      queryClient.setQueryData(queryKeys.assets.detail(asset.id), asset);
+      invalidate();
+      toast.success('Photo deleted');
+    },
+    onError: (err) => handleError(err),
+  });
+
+  return { createAsset, updateAsset, deleteAsset, assignAsset, returnAsset, addImage, removeImage };
 }
 
 /** Employee app */

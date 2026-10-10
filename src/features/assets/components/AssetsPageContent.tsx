@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AssetDetailDialog } from '@/features/assets/components/AssetDetailDialog';
 import { AssetFormDialog } from '@/features/assets/components/AssetFormDialog';
 import { AssetIcon } from '@/features/assets/components/AssetIcon';
+import { AssetThumb } from '@/features/assets/components/AssetThumb';
 import { AssignAssetDialog } from '@/features/assets/components/AssignAssetDialog';
 import { ReturnAssetDialog } from '@/features/assets/components/ReturnAssetDialog';
 import {
@@ -32,6 +33,7 @@ import { useAssetMutations, useAssetSummary, useAssets } from '@/features/assets
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import type { Asset, AssetCategory, AssetListFilters, AssetStatus } from '@/types/asset.types';
 import { formatMoney } from '@/utils/money.utils';
 
@@ -226,7 +228,15 @@ export function AssetsPageContent() {
                     <TableRow key={asset.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <AssetIcon category={asset.category} />
+                          {asset.coverImageId ? (
+                            <AssetThumb
+                              src={API_ENDPOINTS.ASSETS.IMAGE(asset.id, asset.coverImageId)}
+                              alt=""
+                              className="size-9 shrink-0"
+                            />
+                          ) : (
+                            <AssetIcon category={asset.category} />
+                          )}
                           <div className="min-w-0">
                             <button
                               type="button"

@@ -1,16 +1,17 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
-import { Camera, CircleCheck, FileText, ImagePlus, Loader2 } from 'lucide-react';
+import { Camera, CircleAlert, CircleCheck, FileText, Loader2 } from 'lucide-react';
 
 import { FormField } from '@/components/forms/FormField';
 import { mobileButton } from '@/components/mobile/mobile.styles';
+import { FileSourcePicker } from '@/components/shared/FileSourcePicker';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ACCEPTED_SUPPORT_FILE_TYPES } from '@/features/expenses/constants/expense.constants';
+import { ACCEPTED_SUPPORT_FILE_TYPES, MAX_SUPPORT_FILE_MB } from '@/features/expenses/constants/expense.constants';
 import {
   useCategoryDropdown,
   usePaymentMethodDropdown,
@@ -20,9 +21,12 @@ import {
 } from '@/features/expenses/hooks/useExpenseQueries';
 import { expenseFormSchema, type ExpenseFormValues } from '@/features/expenses/schemas/expense.schema';
 import { formatExpenseDate, getTodayExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
+import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
 import { cn } from '@/lib/utils';
 import type { CreateExpensePayload, Expense } from '@/types/expense.types';
 import { formatMoney } from '@/utils/money.utils';
+
+const RECEIPT_ACCEPT = `image/*,${ACCEPTED_SUPPORT_FILE_TYPES}`;
 
 const INPUT = 'h-11 rounded-xl text-base';
 
@@ -35,8 +39,14 @@ interface ClaimFormProps {
 /** Design "MobileNewExpense": receipt, big amount, category chips, details. Also used to edit a pending claim. */
 export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
   const formId = useId();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [receipt, setReceipt] = useState<File | null>(null);
+  const [receiptError, setReceiptError] = useState<string | null>(null);
+  // Keep the previous receipt (if any) when the new one is rejected.
+  const pickReceipt = (file: File) => {
+    const problem = validateSupportFile(file, 'Receipt');
+    setReceiptError(problem);
+    if (!problem) setReceipt(file);
+  };
   const previewUrl = useMemo(() => (receipt?.type.startsWith('image/') ? URL.createObjectURL(receipt) : null), [receipt]);
   useEffect(() => () => (previewUrl ? URL.revokeObjectURL(previewUrl) : undefined), [previewUrl]);
 
@@ -101,16 +111,6 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
           ),
         )}
       >
-        <input
-          ref={fileRef}
-          type="file"
-          accept={`image/*,${ACCEPTED_SUPPORT_FILE_TYPES}`}
-          capture="environment"
-          className="sr-only"
-          tabIndex={-1}
-          aria-hidden
-          onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
-        />
         {hasReceipt ? (
           <div className="flex items-stretch gap-3">
             <div className="flex h-[120px] w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted text-muted-foreground">
@@ -127,31 +127,55 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
                 Receipt attached
               </div>
               <div className="truncate text-[13px] text-muted-foreground">{receiptName}</div>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="h-8 self-start rounded-lg border border-input-border bg-card px-3 text-[13px] font-medium"
-              >
-                {receipt ? 'Retake' : 'Replace'}
-              </button>
+              <FileSourcePicker
+                accept={RECEIPT_ACCEPT}
+                onPick={pickReceipt}
+                size="sm"
+                cameraLabel="Retake"
+                deviceLabel="Replace"
+                cameraTitle="Photo of your receipt"
+                maxBytes={MAX_SUPPORT_FILE_MB * 1024 * 1024}
+                describedBy={receiptError ? `${formId}-receipt-error` : undefined}
+              />
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-3 rounded-xl border border-dashed border-input-border bg-background p-4 text-left"
+          <div
+            className={cn(
+              'flex flex-col gap-3 rounded-xl border border-dashed bg-background p-4',
+              receiptError ? 'border-destructive' : 'border-input-border',
+            )}
           >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-blue-50 text-primary" aria-hidden>
-              <Camera className="size-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-medium">Add a receipt</span>
-              <span className="block text-[13px] text-muted-foreground">Take a photo or choose a file (JPG, PNG, PDF)</span>
-            </span>
-            <ImagePlus className="size-5 text-muted-foreground" aria-hidden />
-          </button>
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-blue-50 text-primary" aria-hidden>
+                <Camera className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-medium">Add a receipt</span>
+                <span className="block text-[13px] text-muted-foreground">
+                  JPG, PNG or PDF · up to {MAX_SUPPORT_FILE_MB} MB
+                </span>
+              </span>
+            </div>
+            <FileSourcePicker
+              accept={RECEIPT_ACCEPT}
+              onPick={pickReceipt}
+              className="grid grid-cols-2"
+              buttonClassName="h-11 text-[15px]"
+              cameraLabel="Take photo"
+              deviceLabel="Choose file"
+              cameraTitle="Photo of your receipt"
+              maxBytes={MAX_SUPPORT_FILE_MB * 1024 * 1024}
+              describedBy={receiptError ? `${formId}-receipt-error` : undefined}
+            />
+          </div>
         )}
+        {receiptError ? (
+          <p id={`${formId}-receipt-error`} role="alert" className="-mt-2.5 flex items-start gap-1.5 text-[13px] text-destructive">
+            <CircleAlert className="mt-px size-4 shrink-0" aria-hidden />
+            {receiptError}
+          </p>
+        ) : null}
 
         <div className="space-y-2">
           <label htmlFor={`${formId}-amount`} className="text-sm font-medium">

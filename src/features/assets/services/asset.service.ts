@@ -58,6 +58,16 @@ class AssetService extends BaseService {
     return this.post<AssetDetail>(API_ENDPOINTS.ASSETS.RETURN(id), payload);
   }
 
+  addImage(id: number, file: File): Promise<AssetDetail> {
+    const form = new FormData();
+    form.append('image', file);
+    return this.post<AssetDetail>(API_ENDPOINTS.ASSETS.IMAGES(id), form);
+  }
+
+  removeImage(id: number, imageId: number): Promise<AssetDetail> {
+    return this.delete<AssetDetail>(API_ENDPOINTS.ASSETS.IMAGE(id, imageId));
+  }
+
   /** Employee app */
   mine(): Promise<MyAssets> {
     return this.get<MyAssets>(API_ENDPOINTS.EMPLOYEE_ASSETS.LIST);

@@ -9,15 +9,17 @@ import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTi
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AssetIcon } from '@/features/assets/components/AssetIcon';
+import { AssetPhotos } from '@/features/assets/components/AssetPhotos';
 import {
   ASSET_CATEGORY_LABELS,
   ASSET_CONDITION_LABELS,
   ASSET_STATUS_LABELS,
   ASSET_STATUS_VARIANT,
 } from '@/features/assets/constants/asset.constants';
-import { useAsset } from '@/features/assets/hooks/useAssets';
+import { useAsset, useAssetMutations } from '@/features/assets/hooks/useAssets';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import type { AssetDetail } from '@/types/asset.types';
 import { formatMoney, todayIso } from '@/utils/money.utils';
 
@@ -41,6 +43,7 @@ function Detail({ label, children, mono }: { label: string; children: React.Reac
 
 export function AssetDetailDialog({ assetId, onClose, onEdit, onAssign, onReturn, onDelete }: AssetDetailDialogProps) {
   const { data: asset, isLoading, isError, error } = useAsset(assetId);
+  const { addImage, removeImage } = useAssetMutations();
   if (assetId === null) return null;
   const current = asset?.currentAssignment ?? null;
   const warrantyOver = Boolean(asset?.warrantyExpiry && asset.warrantyExpiry < todayIso());
@@ -130,6 +133,21 @@ export function AssetDetailDialog({ assetId, onClose, onEdit, onAssign, onReturn
                   </div>
                 ) : null}
               </dl>
+
+              <section aria-labelledby="asset-photos">
+                <h3 id="asset-photos" className="mb-2 text-sm font-semibold">
+                  Photos
+                </h3>
+                <AssetPhotos
+                  assetName={asset.name}
+                  images={asset.images}
+                  srcFor={(imageId) => API_ENDPOINTS.ASSETS.IMAGE(asset.id, imageId)}
+                  onAdd={(file) => addImage.mutate({ id: asset.id, file })}
+                  onRemove={(imageId) => removeImage.mutate({ id: asset.id, imageId })}
+                  adding={addImage.isPending}
+                  removingId={removeImage.isPending ? removeImage.variables?.imageId : null}
+                />
+              </section>
 
               <section aria-labelledby="asset-history">
                 <h3 id="asset-history" className="mb-2 text-sm font-semibold">

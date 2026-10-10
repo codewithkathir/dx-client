@@ -21,7 +21,8 @@ export const VALIDATION_MESSAGES = {
   INVALID_PHONE: (label: string) => `${label} is invalid (use digits, spaces, +, - or brackets)`,
   INVALID_DATE: (label: string) => `${label} is not a valid date`,
   FILE_TYPE: (label: string) => `${label} must be a JPG, PNG, WebP, PDF or Word file`,
-  FILE_TOO_LARGE: (label: string, maxMb: number) => `${label} is too large (maximum is ${maxMb} MB)`,
+  FILE_TOO_LARGE: (label: string, maxMb: number, actual?: string) =>
+    `${label} is too large${actual ? ` (${actual})` : ''}. The maximum is ${maxMb} MB.`,
   NOT_SELECTED: (label: string) => `${label} can't be blank`,
   AMOUNT_POSITIVE: (label: string) => `${label} must be greater than 0`,
   AMOUNT_TOO_LARGE: (label: string) => `${label} is too large`,

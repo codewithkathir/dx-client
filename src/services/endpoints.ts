@@ -125,10 +125,14 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string | number) => `${V1}/admin/assets/${id}`,
     ASSIGN: (id: string | number) => `${V1}/admin/assets/${id}/assign`,
     RETURN: (id: string | number) => `${V1}/admin/assets/${id}/return`,
+    IMAGES: (id: string | number) => `${V1}/admin/assets/${id}/images`,
+    IMAGE: (id: string | number, imageId: string | number) => `${V1}/admin/assets/${id}/images/${imageId}`,
   },
   EMPLOYEE_ASSETS: {
     LIST: `${V1}/employee/assets`,
     ACKNOWLEDGE: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/acknowledge`,
+    IMAGE: (assignmentId: string | number, imageId: string | number) =>
+      `${V1}/employee/assets/${assignmentId}/images/${imageId}`,
   },
   DASHBOARD: {
     OVERVIEW: `${V1}/admin/dashboard`,
