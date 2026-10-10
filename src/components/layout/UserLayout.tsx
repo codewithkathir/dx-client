@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { House, Plus, Receipt, User } from 'lucide-react';
+import { House, Laptop, Plus, Receipt, User } from 'lucide-react';
 
 import { LoadingBar } from '@/components/feedback/LoadingBar';
 import { USER_ROUTES } from '@/constants/routes.constants';
@@ -16,6 +16,7 @@ const TABS = [
   { href: USER_ROUTES.HOME, label: 'Home', icon: House },
   { href: USER_ROUTES.EXPENSES, label: 'Expenses', icon: Receipt },
   { href: USER_ROUTES.EXPENSE_NEW, label: 'New expense', icon: Plus, primary: true },
+  { href: USER_ROUTES.ASSETS, label: 'Assets', icon: Laptop },
   { href: USER_ROUTES.PROFILE, label: 'Profile', icon: User },
 ] as const;
 

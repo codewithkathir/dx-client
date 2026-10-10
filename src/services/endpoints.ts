@@ -119,6 +119,17 @@ export const API_ENDPOINTS = {
     RECEIPT: (id: string | number, receiptId: string | number) =>
       `${V1}/admin/receivables/${id}/receipts/${receiptId}`,
   },
+  ASSETS: {
+    LIST: `${V1}/admin/assets`,
+    SUMMARY: `${V1}/admin/assets/summary`,
+    DETAIL: (id: string | number) => `${V1}/admin/assets/${id}`,
+    ASSIGN: (id: string | number) => `${V1}/admin/assets/${id}/assign`,
+    RETURN: (id: string | number) => `${V1}/admin/assets/${id}/return`,
+  },
+  EMPLOYEE_ASSETS: {
+    LIST: `${V1}/employee/assets`,
+    ACKNOWLEDGE: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/acknowledge`,
+  },
   DASHBOARD: {
     OVERVIEW: `${V1}/admin/dashboard`,
     ALERTS: `${V1}/admin/dashboard/alerts`,

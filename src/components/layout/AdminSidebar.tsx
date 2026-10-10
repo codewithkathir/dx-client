@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, Building, FolderTree, HandCoins, Landmark, LayoutDashboard, LogOut, Settings, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { Briefcase, Building, FolderTree, HandCoins, Landmark, Laptop, LayoutDashboard, LogOut, Settings, Users, Wallet, type LucideIcon } from 'lucide-react';
 
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { AccountAvatar } from '@/features/auth/components/AccountAvatar';
@@ -20,6 +20,7 @@ export interface AdminNavItem {
 export const ADMIN_NAV: AdminNavItem[] = [
   { href: ADMIN_ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
   { href: ADMIN_ROUTES.EMPLOYEES, label: 'Employees', icon: Briefcase },
+  { href: ADMIN_ROUTES.ASSETS, label: 'Assets', icon: Laptop },
   { href: ADMIN_ROUTES.CATEGORIES, label: 'Categories', icon: FolderTree },
   { href: ADMIN_ROUTES.EXPENSES, label: 'Expenses', icon: Wallet },
   { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },

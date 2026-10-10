@@ -1,3 +1,4 @@
+import type { AssetListFilters } from '@/types/asset.types';
 import type { CatalogListFilters } from '@/types/catalog.types';
 import type { EmployeeListFilters } from '@/types/employee.types';
 import type {
@@ -58,6 +59,13 @@ export const queryKeys = {
       ['dropdowns', 'sub-sub-categories', categoryId, subCategoryId] as const,
     paymentMethods: ['dropdowns', 'payment-methods'] as const,
     whom: ['dropdowns', 'whom'] as const,
+  },
+  assets: {
+    all: ['assets'] as const,
+    list: (filters?: AssetListFilters) => ['assets', 'list', filters] as const,
+    summary: ['assets', 'summary'] as const,
+    detail: (id: number) => ['assets', id] as const,
+    mine: ['assets', 'mine'] as const,
   },
   suppliers: {
     all: ['suppliers'] as const,

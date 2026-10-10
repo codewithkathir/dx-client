@@ -1,12 +1,14 @@
 'use client';
 
-import { Calendar, CreditCard, File, IdCard, Pen, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Calendar, CreditCard, File, IdCard, Laptop, Pen, type LucideIcon } from 'lucide-react';
 
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar';
 import { formatExpenseDate, parseExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { cn } from '@/lib/utils';
@@ -175,6 +177,10 @@ export function EmployeeDetailDialog({ employee, open, onClose, onEdit }: Employ
         <DialogFooter>
           <Button type="button" variant="outline" size="lg" onClick={onClose}>
             Close
+          </Button>
+          <Button variant="outline" size="lg" render={<Link href={`${ADMIN_ROUTES.ASSETS}?employee=${employee.id}`} />}>
+            <Laptop className="size-4" />
+            View assets
           </Button>
           <Button type="button" size="lg" onClick={() => onEdit(employee)}>
             <Pen className="size-4" />
