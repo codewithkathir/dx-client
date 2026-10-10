@@ -10,12 +10,12 @@ pipeline {
     }
 
     environment {
-        APP_NAME = 'dx-client'
-        APP_ENV = 'dev'
-        APP_PORT = '7001'
-        APP_DIR = '/var/www/projects/dx/dx-client'
-        ENV_FILE = '/var/www/projects/dx/dx-client/.env.dev'
-        DEPLOY_HELPER = '/usr/local/sbin/dx-deploy-client-dev'
+        APP_NAME = 'dx-client-qa'
+        APP_ENV = 'qa'
+        APP_PORT = '7003'
+        APP_DIR = '/var/www/projects/dx/dx-client-qa'
+        ENV_FILE = '/var/www/projects/dx/dx-client-qa/.env.qa'
+        DEPLOY_HELPER = '/usr/local/sbin/dx-deploy-client-qa'
     }
 
     stages {
@@ -48,9 +48,9 @@ pipeline {
                     set -eu
 
                     test -f "$ENV_FILE"
-                    cp "$ENV_FILE" .env.dev
+                    cp "$ENV_FILE" .env.qa
 
-                    APP_ENV=dev npm run build:dev
+                    APP_ENV=qa npm run build:qa
 
                     test -f .next/standalone/server.js
                     test -d .next/static
@@ -82,13 +82,13 @@ pipeline {
                     for i in $(seq 1 15); do
                         if curl -fsS -o /dev/null \
                             "http://127.0.0.1:${APP_PORT}/"; then
-                            echo "Frontend health check passed."
+                            echo "QA frontend health check passed."
                             exit 0
                         fi
                         sleep 2
                     done
 
-                    echo "Frontend health check failed."
+                    echo "QA frontend health check failed."
                     exit 1
                 '''
             }
@@ -97,13 +97,13 @@ pipeline {
 
     post {
         success {
-            echo 'DX Client Dev deployment completed successfully.'
+            echo 'DX Client QA deployment completed successfully.'
         }
         failure {
-            echo 'DX Client Dev pipeline failed. Check the stage logs.'
+            echo 'DX Client QA pipeline failed. Check the stage logs.'
         }
         always {
-            echo 'DX Client Dev pipeline finished.'
+            echo 'DX Client QA pipeline finished.'
         }
     }
 }
