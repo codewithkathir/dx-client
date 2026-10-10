@@ -1,33 +1,29 @@
+
 pipeline {
     agent any
 
-    environment {
-        APP_NAME = "dx-client"
-        APP_DIR  = "/var/www/projects/dx/dx_client"
-        APP_ENV  = "dev"
-        APP_PORT = "3000"
-        BRANCH   = "develop"
-        REPO     = "https://github.com/codewithkathir/dx-client.git"
-    }
-
     options {
+        timestamps()
         disableConcurrentBuilds()
         timeout(time: 30, unit: 'MINUTES')
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        APP_NAME = 'dx-client'
+        APP_ENV = 'dev'
+        APP_PORT = '7001'
+        APP_DIR = '/var/www/projects/dx/dx-client'
+        ENV_FILE = '/var/www/projects/dx/dx-client/.env.dev'
+        DEPLOY_HELPER = '/usr/local/sbin/dx-deploy-client-dev'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
-                script {
-                    if (fileExists('.git')) {
-                        sh 'git reset --hard'
-                        sh 'git clean -fd'
-                    }
-                }
-
-                git branch: "${BRANCH}",
-                    url: "${REPO}"
+                deleteDir()
+                checkout scm
+                sh 'git log -1 --oneline'
             }
         }
 
@@ -37,88 +33,77 @@ pipeline {
             }
         }
 
-        stage('Lint') {
+        stage('Lint and Typecheck') {
             steps {
-                sh 'npm run lint || true'
-            }
-        }
-
-        stage('Type Check') {
-            steps {
-                sh 'npm run typecheck'
+                sh '''
+                    npm run lint
+                    npm run typecheck
+                '''
             }
         }
 
         stage('Build') {
             steps {
-                // NEXT_PUBLIC_* values are baked in at build time. The env file
-                // lives on the VPS in APP_DIR and is copied into the workspace.
-                sh """
-                    if [ ! -f ${APP_DIR}/.env.${APP_ENV} ]; then
-                        echo "Missing ${APP_DIR}/.env.${APP_ENV} (copy .env.${APP_ENV}.example and fill it in)"
-                        exit 1
-                    fi
+                sh '''
+                    set -eu
 
-                    cp ${APP_DIR}/.env.${APP_ENV} .env.${APP_ENV}
-                    rm -rf .next
-                    npm run build:${APP_ENV}
-                """
+                    test -f "$ENV_FILE"
+                    cp "$ENV_FILE" .env.dev
+
+                    APP_ENV=dev npm run build:dev
+
+                    test -f .next/standalone/server.js
+                    test -d .next/static
+
+                    mkdir -p .next/standalone/.next
+                    cp -a .next/static .next/standalone/.next/
+
+                    if [ -d public ]; then
+                        cp -a public .next/standalone/public
+                    fi
+                '''
             }
         }
 
         stage('Deploy') {
             steps {
-                // output: "standalone" -> .next/standalone holds server.js and the
-                // minimal node_modules; static assets and public/ must be added.
-                sh """
-                    cp -r .next/static .next/standalone/.next/static
-                    if [ -d public ]; then cp -r public .next/standalone/public; fi
-
-                    sudo mkdir -p ${APP_DIR}
-                    sudo chown -R \$(whoami) ${APP_DIR}
-
-                    rsync -a --delete \
-                    --exclude='.env*' \
-                    .next/standalone/ ${APP_DIR}/
-                """
+                sh '''
+                    set -eu
+                    sudo -n "$DEPLOY_HELPER"
+                '''
             }
         }
 
-        stage('Restart Application') {
+        stage('Health Check') {
             steps {
-                sh """
-                    pm2 delete ${APP_NAME} || true
+                sh '''
+                    set -eu
 
-                    cd ${APP_DIR}
+                    for i in $(seq 1 15); do
+                        if curl -fsS -o /dev/null \
+                            "http://127.0.0.1:${APP_PORT}/"; then
+                            echo "Frontend health check passed."
+                            exit 0
+                        fi
+                        sleep 2
+                    done
 
-                    PORT=${APP_PORT} HOSTNAME=0.0.0.0 \
-                    pm2 start server.js \
-                    --name ${APP_NAME}
-
-                    pm2 save
-                """
-            }
-        }
-
-        stage('Verify') {
-            steps {
-                sh """
-                    sleep 5
-                    curl -fsS -o /dev/null -w "HTTP %{http_code}\\n" http://127.0.0.1:${APP_PORT}/
-                    pm2 status
-                """
+                    echo "Frontend health check failed."
+                    exit 1
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ DX Client deployed successfully'
+            echo 'DX Client Dev deployment completed successfully.'
         }
-
         failure {
-            echo '❌ Deployment failed'
-            sh "pm2 logs ${APP_NAME} --lines 50 --nostream || true"
+            echo 'DX Client Dev pipeline failed. Check the stage logs.'
+        }
+        always {
+            echo 'DX Client Dev pipeline finished.'
         }
     }
 }
