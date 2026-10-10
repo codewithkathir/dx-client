@@ -2,9 +2,10 @@
 
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Package } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { FormSection } from '@/components/forms/FormSection';
 import { MoneyInput } from '@/components/forms/MoneyInput';
@@ -21,6 +22,7 @@ import {
 } from '@/features/assets/constants/asset.constants';
 import { assetFormSchema, type AssetFormValues } from '@/features/assets/schemas/asset.schema';
 import type { Asset, AssetCategory, AssetCondition, AssetPayload, UnassignedAssetStatus } from '@/types/asset.types';
+import { todayIso } from '@/utils/money.utils';
 
 interface AssetFormDialogProps {
   open: boolean;
@@ -60,7 +62,7 @@ function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDia
   const formId = useId();
   const isEdit = Boolean(asset);
   const assigned = asset?.status === 'assigned';
-  const { register, handleSubmit, formState } = useForm<AssetFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
     defaultValues: {
       name: asset?.name ?? '',
@@ -78,6 +80,7 @@ function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDia
     },
   });
   const { errors } = formState;
+  const purchaseDate = useWatch({ control, name: 'purchaseDate' });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -125,13 +128,41 @@ function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDia
           <FormSection title="Purchase & warranty">
             <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-3">
               <FormField label="Purchase date" htmlFor={`${formId}-pdate`} error={errors.purchaseDate?.message}>
-                <Input id={`${formId}-pdate`} type="date" {...register('purchaseDate')} />
+                <Controller
+                  control={control}
+                  name="purchaseDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-pdate`}
+                      max={todayIso()}
+                      placeholder="Not set"
+                      clearable
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
               </FormField>
               <FormField label="Cost" htmlFor={`${formId}-cost`} error={errors.purchaseCost?.message}>
                 <MoneyInput id={`${formId}-cost`} min="0" {...register('purchaseCost')} />
               </FormField>
               <FormField label="Warranty until" htmlFor={`${formId}-warranty`} error={errors.warrantyExpiry?.message}>
-                <Input id={`${formId}-warranty`} type="date" {...register('warrantyExpiry')} />
+                <Controller
+                  control={control}
+                  name="warrantyExpiry"
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-warranty`}
+                      min={purchaseDate || undefined}
+                      placeholder="Not set"
+                      clearable
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
               </FormField>
             </div>
           </FormSection>

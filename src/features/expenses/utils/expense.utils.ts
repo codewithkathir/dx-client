@@ -1,3 +1,5 @@
+import { todayIso } from '@/utils/money.utils';
+
 export function formatExpenseAmount(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -24,8 +26,9 @@ export function formatExpenseDate(date: string): string {
   return `${day} ${SHORT_MONTHS[parsed.getMonth()]} ${parsed.getFullYear()}`;
 }
 
+/** Today in the employee's timezone (toISOString() would give the UTC date). */
 export function getTodayExpenseDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayIso();
 }
 
 export function supportFileLabel(path: string | null): string | null {

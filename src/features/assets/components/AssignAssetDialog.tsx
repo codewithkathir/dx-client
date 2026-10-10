@@ -2,14 +2,14 @@
 
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { UserPlus } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAdminWhomDropdown } from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
@@ -35,11 +35,12 @@ export function AssignAssetDialog(props: AssignAssetDialogProps) {
 function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDialogProps & { asset: Asset }) {
   const formId = useId();
   const { data: employees = [] } = useAdminWhomDropdown();
-  const { register, handleSubmit, formState } = useForm<AssignFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<AssignFormValues>({
     resolver: zodResolver(assignFormSchema),
     defaultValues: { employeeId: '', assignedDate: todayIso(), expectedReturnDate: '', condition: asset.condition, notes: '' },
   });
   const { errors } = formState;
+  const assignedDate = useWatch({ control, name: 'assignedDate' });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -82,10 +83,38 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
           </FormField>
           <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
             <FormField label="Assigned on" htmlFor={`${formId}-date`} required error={errors.assignedDate?.message}>
-              <Input id={`${formId}-date`} type="date" max={todayIso()} {...register('assignedDate')} />
+              <Controller
+                control={control}
+                name="assignedDate"
+                render={({ field }) => (
+                  <DatePicker
+                    id={`${formId}-date`}
+                    max={todayIso()}
+                    aria-invalid={errors.assignedDate ? true : undefined}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
             </FormField>
             <FormField label="Return by" htmlFor={`${formId}-ret`} error={errors.expectedReturnDate?.message}>
-              <Input id={`${formId}-ret`} type="date" {...register('expectedReturnDate')} />
+              <Controller
+                control={control}
+                name="expectedReturnDate"
+                render={({ field }) => (
+                  <DatePicker
+                    id={`${formId}-ret`}
+                    min={assignedDate || undefined}
+                    placeholder="No return date"
+                    clearable
+                    aria-invalid={errors.expectedReturnDate ? true : undefined}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
               <p className="text-xs text-muted-foreground">Optional — leave empty for permanent use.</p>
             </FormField>
             <FormField label="Condition when handed over" htmlFor={`${formId}-cond`} className="sm:col-span-2">

@@ -2,15 +2,15 @@
 
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Undo2 } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ASSET_CONDITION_OPTIONS, UNASSIGNED_STATUS_OPTIONS } from '@/features/assets/constants/asset.constants';
@@ -35,7 +35,7 @@ export function ReturnAssetDialog(props: ReturnAssetDialogProps) {
 function ReturnInner({ asset, isSubmitting, onSubmit, onClose }: ReturnAssetDialogProps & { asset: Asset }) {
   const formId = useId();
   const assignment = asset.currentAssignment!;
-  const { register, handleSubmit, formState } = useForm<ReturnFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<ReturnFormValues>({
     resolver: zodResolver(returnFormSchema),
     defaultValues: { returnedDate: todayIso(), condition: asset.condition, nextStatus: 'available', notes: '' },
   });
@@ -64,7 +64,21 @@ function ReturnInner({ asset, isSubmitting, onSubmit, onClose }: ReturnAssetDial
         >
           <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
             <FormField label="Returned on" htmlFor={`${formId}-date`} required error={errors.returnedDate?.message}>
-              <Input id={`${formId}-date`} type="date" min={assignment.assignedDate} max={todayIso()} {...register('returnedDate')} />
+              <Controller
+                control={control}
+                name="returnedDate"
+                render={({ field }) => (
+                  <DatePicker
+                    id={`${formId}-date`}
+                    min={assignment.assignedDate}
+                    max={todayIso()}
+                    aria-invalid={errors.returnedDate ? true : undefined}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
             </FormField>
             <FormField label="Condition on return" htmlFor={`${formId}-cond`} required error={errors.condition?.message}>
               <Select id={`${formId}-cond`} {...register('condition')}>

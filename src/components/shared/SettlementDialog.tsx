@@ -2,9 +2,10 @@
 
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CircleCheck, HandCoins, Wallet } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { MoneyInput } from '@/components/forms/MoneyInput';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
@@ -128,14 +129,21 @@ function SettlementDialogInner({
 
             <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
               <FormField label={copy.dateLabel} htmlFor={`${formId}-date`} required error={errors.paymentDate?.message}>
-                <Input
-                  id={`${formId}-date`}
-                  type="date"
-                  min={minDate}
-                  max={todayIso()}
-                  {...register('paymentDate', {
-                    validate: (v) => !dateOutOfRange(v) || 'Use a date between the document date and today',
-                  })}
+                <Controller
+                  control={control}
+                  name="paymentDate"
+                  rules={{ validate: (v) => !dateOutOfRange(v) || 'Use a date between the document date and today' }}
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-date`}
+                      min={minDate}
+                      max={todayIso()}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      aria-invalid={errors.paymentDate ? true : undefined}
+                    />
+                  )}
                 />
               </FormField>
               <div className="space-y-2">

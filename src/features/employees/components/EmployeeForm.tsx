@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
+import { todayIso } from '@/utils/money.utils';
 import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
 import { employeeProfilePhotoUrl } from '@/features/employees/utils/employee-photo.utils';
 import { Button } from '@/components/ui/button';
@@ -60,7 +62,7 @@ export function EmployeeForm({
 }: EmployeeFormProps) {
   const schema = mode === 'create' ? createEmployeeSchema : employeeFormSchema;
 
-  const { register, handleSubmit, formState } = useForm<EmployeeFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<EmployeeFormValues>({
     resolver: zodResolver(schema),
     defaultValues: employee ? employeeToFormValues(employee) : EMPTY_DEFAULTS,
   });
@@ -103,7 +105,21 @@ export function EmployeeForm({
             <Input id="companyName" {...register('companyName')} />
           </FormField>
           <FormField label="Date of birth" htmlFor="dob" required error={formState.errors.dob?.message}>
-            <Input id="dob" type="date" {...register('dob')} />
+            <Controller
+              control={control}
+              name="dob"
+              render={({ field }) => (
+                <DatePicker
+                  id="dob"
+                  max={todayIso()}
+                  yearDropdown
+                  aria-invalid={formState.errors.dob ? true : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
           </FormField>
           <FormField label="Status" htmlFor="status" required error={formState.errors.status?.message}>
             <Select id="status" {...register('status')}>
@@ -163,22 +179,75 @@ export function EmployeeForm({
             <Input id="emiratesIdNo" {...register('emiratesIdNo')} />
           </FormField>
           <FormField label="Emirates ID expiry" htmlFor="emiratesIdExpiryDate" required error={formState.errors.emiratesIdExpiryDate?.message}>
-            <Input id="emiratesIdExpiryDate" type="date" {...register('emiratesIdExpiryDate')} />
+            <Controller
+              control={control}
+              name="emiratesIdExpiryDate"
+              render={({ field }) => (
+                <DatePicker
+                  id="emiratesIdExpiryDate"
+                  yearDropdown
+                  aria-invalid={formState.errors.emiratesIdExpiryDate ? true : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
           </FormField>
           <FormField label="Visa expiry" htmlFor="visaExpiryDate" required error={formState.errors.visaExpiryDate?.message}>
-            <Input id="visaExpiryDate" type="date" {...register('visaExpiryDate')} />
+            <Controller
+              control={control}
+              name="visaExpiryDate"
+              render={({ field }) => (
+                <DatePicker
+                  id="visaExpiryDate"
+                  yearDropdown
+                  aria-invalid={formState.errors.visaExpiryDate ? true : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
           </FormField>
           <FormField label="Passport no." htmlFor="passportNo" required error={formState.errors.passportNo?.message}>
             <Input id="passportNo" {...register('passportNo')} />
           </FormField>
           <FormField label="Passport expiry" htmlFor="passportExpiryDate" required error={formState.errors.passportExpiryDate?.message}>
-            <Input id="passportExpiryDate" type="date" {...register('passportExpiryDate')} />
+            <Controller
+              control={control}
+              name="passportExpiryDate"
+              render={({ field }) => (
+                <DatePicker
+                  id="passportExpiryDate"
+                  yearDropdown
+                  aria-invalid={formState.errors.passportExpiryDate ? true : undefined}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
           </FormField>
           <FormField label="Driving license" htmlFor="drivingLicenseNo" error={formState.errors.drivingLicenseNo?.message}>
             <Input id="drivingLicenseNo" {...register('drivingLicenseNo')} />
           </FormField>
           <FormField label="License expiry" htmlFor="drivingLicenseExpiryDate" error={formState.errors.drivingLicenseExpiryDate?.message}>
-            <Input id="drivingLicenseExpiryDate" type="date" {...register('drivingLicenseExpiryDate')} />
+            <Controller
+              control={control}
+              name="drivingLicenseExpiryDate"
+              render={({ field }) => (
+                <DatePicker
+                  id="drivingLicenseExpiryDate"
+                  yearDropdown
+                  clearable
+                  placeholder="Not set"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
           </FormField>
         </div>
       </section>

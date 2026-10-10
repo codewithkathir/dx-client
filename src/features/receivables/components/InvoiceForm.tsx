@@ -2,9 +2,10 @@
 
 import { useId, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FileText, Send } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { MoneyInput } from '@/components/forms/MoneyInput';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
@@ -91,8 +92,6 @@ function InvoiceFormDialogInner({ invoice, isSubmitting, onSubmit, onClose }: In
     if (!dueTouched && /^\d{4}-\d{2}-\d{2}$/.test(date)) setValue('dueDate', addDaysIso(date, days), { shouldValidate: true });
   };
   const customerField = register('customerId');
-  const dateField = register('invoiceDate');
-  const dueField = register('dueDate');
 
   const submitAs = (status?: 'draft' | 'sent') => handleSubmit((values) => onSubmit(toPayload(values, status)));
 
@@ -132,25 +131,39 @@ function InvoiceFormDialogInner({ invoice, isSubmitting, onSubmit, onClose }: In
             </FormField>
             <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
               <FormField label="Invoice date" htmlFor={`${formId}-date`} required error={errors.invoiceDate?.message}>
-                <Input
-                  id={`${formId}-date`}
-                  type="date"
-                  {...dateField}
-                  onChange={(e) => {
-                    void dateField.onChange(e);
-                    syncDueDate(e.target.value, termDays);
-                  }}
+                <Controller
+                  control={control}
+                  name="invoiceDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-date`}
+                      value={field.value}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        syncDueDate(value, termDays);
+                      }}
+                      onBlur={field.onBlur}
+                    />
+                  )}
                 />
               </FormField>
               <FormField label="Due date" htmlFor={`${formId}-due`} required error={errors.dueDate?.message}>
-                <Input
-                  id={`${formId}-due`}
-                  type="date"
-                  {...dueField}
-                  onChange={(e) => {
-                    setDueTouched(true);
-                    void dueField.onChange(e);
-                  }}
+                <Controller
+                  control={control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-due`}
+                      min={invoiceDate || undefined}
+                      value={field.value}
+                      onChange={(value) => {
+                        setDueTouched(true);
+                        field.onChange(value);
+                      }}
+                      onBlur={field.onBlur}
+                      aria-invalid={errors.dueDate ? true : undefined}
+                    />
+                  )}
                 />
                 {!dueTouched && invoiceDate ? (
                   <p className="text-xs text-muted-foreground">

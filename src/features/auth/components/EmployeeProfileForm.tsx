@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
+import { todayIso } from '@/utils/money.utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +29,7 @@ export function EmployeeProfileForm({ profile, onDone }: EmployeeProfileFormProp
   const [photo, setPhoto] = useState<File | null>(null);
   const updateProfile = useUpdateProfile(AUTH_PORTAL.USER);
 
-  const { register, handleSubmit, formState } = useForm<EmployeeProfileFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<EmployeeProfileFormValues>({
     resolver: zodResolver(employeeProfileSchema),
     defaultValues: {
       empName: profile.empName,
@@ -68,7 +70,21 @@ export function EmployeeProfileForm({ profile, onDone }: EmployeeProfileFormProp
           <Input id="empName" autoComplete="name" {...register('empName')} />
         </FormField>
         <FormField label="Date of birth" htmlFor="dob" required error={errors.dob?.message}>
-          <Input id="dob" type="date" {...register('dob')} />
+          <Controller
+            control={control}
+            name="dob"
+            render={({ field }) => (
+              <DatePicker
+                id="dob"
+                max={todayIso()}
+                yearDropdown
+                aria-invalid={errors.dob ? true : undefined}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
         </FormField>
         <FormField label="Phone" htmlFor="phoneNo" required error={errors.phoneNo?.message}>
           <Input id="phoneNo" type="tel" autoComplete="tel" {...register('phoneNo')} />

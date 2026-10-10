@@ -23,10 +23,10 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: ADMIN_ROUTES.ASSETS, label: 'Assets', icon: Laptop },
   { href: ADMIN_ROUTES.CATEGORIES, label: 'Categories', icon: FolderTree },
   { href: ADMIN_ROUTES.EXPENSES, label: 'Expenses', icon: Wallet },
-  { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },
-  { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building },
-  { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
   { href: ADMIN_ROUTES.CUSTOMERS, label: 'Customers', icon: Users },
+  { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building },
+  { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },
+  { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
   { href: ADMIN_ROUTES.SETTINGS, label: 'Settings', icon: Settings },
 ];
 

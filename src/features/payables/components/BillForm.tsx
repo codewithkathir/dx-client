@@ -2,9 +2,10 @@
 
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Receipt } from 'lucide-react';
 
+import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
 import { MoneyInput } from '@/components/forms/MoneyInput';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
@@ -70,7 +71,7 @@ function BillFormDialogInner({ bill, isSubmitting, onSubmit, onClose }: BillForm
   });
   const { errors } = formState;
 
-  const [subtotalInput, vatRateInput] = useWatch({ control, name: ['subtotalAmount', 'vatRate'] });
+  const [subtotalInput, vatRateInput, billDate] = useWatch({ control, name: ['subtotalAmount', 'vatRate', 'billDate'] });
   const subtotal = Number(subtotalInput);
   const totals = Number.isFinite(subtotal) && subtotal > 0 ? calculateTotals(subtotal, Number(vatRateInput)) : null;
   const submitAs = (status?: 'draft' | 'open') => handleSubmit((values) => onSubmit(toPayload(values, status)));
@@ -105,10 +106,29 @@ function BillFormDialogInner({ bill, isSubmitting, onSubmit, onClose }: BillForm
                 <Input id={`${formId}-no`} placeholder="e.g. DL-INV-88213" {...register('billNo')} />
               </FormField>
               <FormField label="Bill date" htmlFor={`${formId}-date`} required error={errors.billDate?.message}>
-                <Input id={`${formId}-date`} type="date" {...register('billDate')} />
+                <Controller
+                  control={control}
+                  name="billDate"
+                  render={({ field }) => (
+                    <DatePicker id={`${formId}-date`} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />
+                  )}
+                />
               </FormField>
               <FormField label="Due date" htmlFor={`${formId}-due`} required error={errors.dueDate?.message}>
-                <Input id={`${formId}-due`} type="date" aria-invalid={errors.dueDate ? true : undefined} {...register('dueDate')} />
+                <Controller
+                  control={control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id={`${formId}-due`}
+                      min={billDate || undefined}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      aria-invalid={errors.dueDate ? true : undefined}
+                    />
+                  )}
+                />
               </FormField>
               <FormField label="Amount before VAT (AED)" htmlFor={`${formId}-amount`} required error={errors.subtotalAmount?.message}>
                 <MoneyInput id={`${formId}-amount`} {...register('subtotalAmount')} />
