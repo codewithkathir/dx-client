@@ -5,6 +5,7 @@ import { FileUp, Paperclip, RefreshCw, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { FilePreview } from '@/components/shared/FilePreview';
+import { friendlyFileName } from '@/components/shared/file-blob';
 import { Button } from '@/components/ui/button';
 import { ACCEPTED_SUPPORT_FILE_TYPES } from '@/features/expenses/constants/expense.constants';
 import { usePayableMutations } from '@/features/payables/hooks/usePayables';
@@ -78,7 +79,7 @@ export function BillAttachmentSection({ bill }: BillAttachmentSectionProps) {
         <FilePreview
           key={`${bill.id}-${bill.updatedAt}`}
           src={API_ENDPOINTS.PAYABLES.ATTACHMENT(bill.id)}
-          fileName={attachment.fileName}
+          fileName={friendlyFileName(attachment.fileName, attachment.source === 'expense' ? `${bill.billNo}-receipt` : bill.billNo)}
           contentType={attachment.contentType}
           className="h-[min(50vh,380px)]"
           actions={

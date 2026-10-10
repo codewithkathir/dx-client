@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   AlertCircle,
@@ -12,37 +12,16 @@ import {
   Minus,
   Plus,
   RotateCw,
-  X,
 } from 'lucide-react';
 
+import { AttachmentViewer } from '@/components/shared/AttachmentViewer';
+import { formatSize, kindOf, useFileBlob, type FileKind } from '@/components/shared/file-blob';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Portal } from '@/components/ui/portal';
 import { cn } from '@/lib/utils';
-import { apiClient } from '@/services/api';
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.25;
-const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
-
-type FileKind = 'image' | 'pdf' | 'other';
-
-function kindOf(fileName: string, contentType?: string | null): FileKind {
-  const type = contentType?.toLowerCase() ?? '';
-  if (type.startsWith('image/')) return 'image';
-  if (type === 'application/pdf') return 'pdf';
-  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
-  if (IMAGE_EXTENSIONS.has(ext)) return 'image';
-  if (ext === 'pdf') return 'pdf';
-  return 'other';
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export interface FilePreviewProps {
   /** API path (relative to the Axios base URL) that streams the file. */
   src: string;
@@ -83,49 +62,6 @@ function ToolButton({ label, disabled, onClick, children }: ToolButtonProps) {
       {children}
     </button>
   );
-}
-
-/** Loads a protected file through the API client and keeps an object URL for it. */
-function useFileBlob(src: string, contentType?: string | null) {
-  const [attempt, setAttempt] = useState(0);
-  const requestKey = `${src}|${contentType ?? ''}|${attempt}`;
-  // Result is tagged with the request it belongs to, so a new src reads as "loading" without a reset.
-  const [result, setResult] = useState<{ key: string; url: string | null; size: number; failed: boolean } | null>(null);
-
-  useEffect(() => {
-    let objectUrl: string | null = null;
-    let cancelled = false;
-
-    apiClient
-      .get<Blob>(src, { responseType: 'blob' })
-      .then((response) => {
-        if (cancelled) return;
-        const blob = response.data;
-        const type = contentType || blob.type || String(response.headers['content-type'] ?? '');
-        // Re-wrap so the browser gets the right type (PDF viewer, image decode).
-        const typed = type && blob.type !== type ? new Blob([blob], { type }) : blob;
-        objectUrl = URL.createObjectURL(typed);
-        setResult({ key: requestKey, url: objectUrl, size: typed.size, failed: false });
-      })
-      .catch(() => {
-        if (!cancelled) setResult({ key: requestKey, url: null, size: 0, failed: true });
-      });
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [src, contentType, requestKey]);
-
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
-  const current = result?.key === requestKey ? result : null;
-  return {
-    url: current?.url ?? null,
-    size: current?.size ?? 0,
-    loading: current === null,
-    failed: current?.failed ?? false,
-    retry,
-  };
 }
 
 interface ViewerProps {
@@ -209,46 +145,6 @@ function Viewer({ url, kind, fileName, fullscreen = false }: ViewerProps) {
         </ToolButton>
       </div>
     </div>
-  );
-}
-
-/** Full-screen overlay. Captures Escape so a parent dialog stays open. */
-function FullscreenViewer({
-  url,
-  kind,
-  fileName,
-  onClose,
-  toolbar,
-}: ViewerProps & { onClose: () => void; toolbar: ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopImmediatePropagation();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClose]);
-
-  return (
-    <Portal>
-      <div className="fixed inset-0 z-[60] flex flex-col bg-black/85 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={fileName}>
-        <div className="flex items-center gap-3 px-4 py-3 text-white">
-          <FileText className="size-4 shrink-0 opacity-80" aria-hidden />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">{fileName}</span>
-          <div className="flex items-center gap-1 [&_button]:text-white [&_a]:text-white [&_button:hover]:bg-white/15 [&_a:hover]:bg-white/15">
-            {toolbar}
-            <ToolButton label="Close" onClick={onClose}>
-              <X className="size-5" />
-            </ToolButton>
-          </div>
-        </div>
-        <div className="min-h-0 flex-1 px-4 pb-4">
-          <Viewer url={url} kind={kind} fileName={fileName} fullscreen />
-        </div>
-      </div>
-    </Portal>
   );
 }
 
@@ -363,9 +259,14 @@ export function FilePreview({ src, fileName, contentType, variant = 'detail', cl
 
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
 
-      {fullscreen && url ? (
-        <FullscreenViewer url={url} kind={kind} fileName={fileName} onClose={closeFullscreen} toolbar={fileTools} />
-      ) : null}
+      <AttachmentViewer
+        open={fullscreen && Boolean(url)}
+        onClose={closeFullscreen}
+        url={url}
+        size={size}
+        fileName={fileName}
+        contentType={contentType}
+      />
     </div>
   );
 }

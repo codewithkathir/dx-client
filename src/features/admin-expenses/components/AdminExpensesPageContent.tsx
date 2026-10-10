@@ -7,6 +7,8 @@ import { Check, CircleCheck, CircleX, Clock4, Download, Eye, Paperclip, Receipt,
 
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
+import { AttachmentViewer } from '@/components/shared/AttachmentViewer';
+import { friendlyFileName } from '@/components/shared/file-blob';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DateRangePicker } from '@/components/shared/DateRangePicker';
 import { StatCard, StatCardsSkeleton } from '@/components/shared/MoneySummaryCards';
@@ -38,6 +40,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import type { AdminExpenseListFilters, AdminExpenseSummaryFilters, Expense, ExpenseStage } from '@/types/expense.types';
 import { downloadCsv } from '@/utils/csv.utils';
 import { formatMoney } from '@/utils/money.utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 
 const STAGE_OPTIONS: Array<{ value: ExpenseStage | ''; label: string }> = [
   { value: '', label: 'All statuses' },
@@ -65,6 +68,8 @@ export function AdminExpensesPageContent() {
   });
   const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
   const [viewing, setViewing] = useState<Expense | null>(null);
+  // Receipt opened straight from the paperclip in the table.
+  const [previewing, setPreviewing] = useState<Expense | null>(null);
   const [deleting, setDeleting] = useState<Expense | null>(null);
   const [decision, setDecision] = useState<ExpenseDecision | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -259,7 +264,7 @@ export function AdminExpensesPageContent() {
                           className="text-primary hover:text-primary"
                           aria-label={`View attachment ${fileName(expense.supportFile)}`}
                           title={fileName(expense.supportFile)}
-                          onClick={() => setViewing(expense)}
+                          onClick={() => setPreviewing(expense)}
                         >
                           <Paperclip className="size-4" />
                         </Button>
@@ -349,6 +354,12 @@ export function AdminExpensesPageContent() {
           })
         }
         onCancel={() => setDeleting(null)}
+      />
+      <AttachmentViewer
+        open={Boolean(previewing?.supportFile)}
+        onClose={() => setPreviewing(null)}
+        src={previewing ? API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.SUPPORT_FILE(previewing.id) : undefined}
+        fileName={previewing?.supportFile ? friendlyFileName(fileName(previewing.supportFile), `receipt-${previewing.id}`) : ''}
       />
     </section>
   );

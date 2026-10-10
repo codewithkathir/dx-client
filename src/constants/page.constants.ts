@@ -12,7 +12,6 @@ export const PAGE_TITLES = {
   USER_HOME: 'Home',
   USER_EXPENSES: 'My expenses',
   USER_PROFILE: 'Profile',
-  USER_ORDERS: 'Orders',
 } as const;
 
 export const PAGE_DESCRIPTIONS = {
@@ -34,5 +33,4 @@ export const PAGE_DESCRIPTIONS = {
   USER_EXPENSES:
     'Submit and track your expense claims. You can edit or delete a claim until an administrator approves it.',
   USER_PROFILE: 'View your profile and manage account security.',
-  USER_ORDERS: 'Your orders and requests will appear here.',
 } as const;

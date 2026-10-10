@@ -22,7 +22,6 @@ export const USER_ROUTES = {
   EXPENSE_DETAIL: (id: number) => `/app/expenses/${id}`,
   EXPENSE_EDIT: (id: number) => `/app/expenses/${id}/edit`,
   PROFILE: '/app/profile',
-  ORDERS: '/app/orders',
   LOGIN: '/login',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
