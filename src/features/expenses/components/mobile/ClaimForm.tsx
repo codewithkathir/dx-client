@@ -17,8 +17,8 @@ import {
   usePaymentMethodDropdown,
   useSubCategoryDropdown,
   useSubSubCategoryDropdown,
-  useWhomDropdown,
 } from '@/features/expenses/hooks/useExpenseQueries';
+import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
 import { expenseFormSchema, type ExpenseFormValues } from '@/features/expenses/schemas/expense.schema';
 import { formatExpenseDate, getTodayExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
 import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
@@ -51,8 +51,9 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
   useEffect(() => () => (previewUrl ? URL.revokeObjectURL(previewUrl) : undefined), [previewUrl]);
 
   const { data: categories = [] } = useCategoryDropdown();
-  const { data: whomOptions = [] } = useWhomDropdown();
-  const { data: paymentMethods = [] } = usePaymentMethodDropdown();
+  // "Whom" is always the logged-in employee; the server enforces this too.
+  const { data: profile } = useEmployeeProfile();
+  const { data: paymentMethods = [], isSuccess: paymentMethodsLoaded } = usePaymentMethodDropdown();
 
   // Claims are dated the day they are submitted (same rule as the desktop form).
   const date = expense?.date ?? getTodayExpenseDate();
@@ -61,7 +62,6 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     defaultValues: {
       date,
       amount: expense?.amount ?? (undefined as unknown as number),
-      whom: expense?.whom ?? 0,
       categoryId: expense?.categoryId ?? 0,
       subCategoryId: expense?.subCategoryId ?? 0,
       subSubCategoryId: expense?.subSubCategoryId ?? undefined,
@@ -100,7 +100,6 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
             {
               date: values.date,
               amount: values.amount,
-              whom: values.whom,
               categoryId: values.categoryId,
               subCategoryId: values.subCategoryId,
               subSubCategoryId: values.subSubCategoryId ?? null,
@@ -278,19 +277,20 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
         ) : null}
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Whom" htmlFor={`${formId}-whom`} required error={errors.whom?.message}>
-            <Select id={`${formId}-whom`} className={INPUT} {...register('whom', { valueAsNumber: true })}>
-              <option value={0}>Select…</option>
-              {whomOptions.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.empName}
-                </option>
-              ))}
-            </Select>
+          <FormField label="Whom" htmlFor={`${formId}-whom`}>
+            <Input id={`${formId}-whom`} className={INPUT} value={profile?.empName ?? ''} placeholder="You" disabled readOnly />
           </FormField>
-          <FormField label="Paid with" htmlFor={`${formId}-pay`} required error={errors.paymentMethodId?.message}>
+          <FormField
+            label="Paid with"
+            htmlFor={`${formId}-pay`}
+            required
+            error={
+              errors.paymentMethodId?.message ??
+              (paymentMethodsLoaded && paymentMethods.length === 0 ? 'No payment methods yet. Ask your admin to add one.' : undefined)
+            }
+          >
             <Select id={`${formId}-pay`} className={INPUT} {...register('paymentMethodId', { valueAsNumber: true })}>
-              <option value={0}>Select…</option>
+              <option value={0}>{paymentMethodsLoaded && paymentMethods.length === 0 ? 'None available' : 'Select…'}</option>
               {paymentMethods.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}

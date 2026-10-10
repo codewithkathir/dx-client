@@ -99,7 +99,8 @@ export interface ExpenseListResult {
 export interface CreateExpensePayload {
   date: string;
   amount: number;
-  whom: number;
+  /** Ignored by the server: a claim is always for the logged-in employee. */
+  whom?: number;
   categoryId: number;
   subCategoryId: number;
   subSubCategoryId?: number | null;

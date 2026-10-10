@@ -9,7 +9,6 @@ export const expenseFormSchema = z.object({
     .number({ error: VALIDATION_MESSAGES.BLANK('Amount') })
     .positive(VALIDATION_MESSAGES.AMOUNT_POSITIVE('Amount'))
     .max(999999999.99, VALIDATION_MESSAGES.AMOUNT_TOO_LARGE('Amount')),
-  whom: requiredId('Whom'),
   categoryId: requiredId('Category'),
   subCategoryId: requiredId('Sub category'),
   subSubCategoryId: z.number().min(1).optional().nullable(),
