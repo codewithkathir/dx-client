@@ -1,20 +1,20 @@
 import { z } from 'zod';
 
+import { nullableText, requiredDate, requiredId } from '@/lib/validation';
 import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
 
-const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format');
-
 export const expenseFormSchema = z.object({
-  date: dateSchema,
-  amount: z.number().positive('Amount must be greater than zero').max(999999999.99),
-  whom: z.number().min(1, VALIDATION_MESSAGES.REQUIRED),
-  categoryId: z.number().min(1, VALIDATION_MESSAGES.REQUIRED),
-  subCategoryId: z.number().min(1, VALIDATION_MESSAGES.REQUIRED),
+  date: requiredDate('Date'),
+  amount: z
+    .number({ error: VALIDATION_MESSAGES.BLANK('Amount') })
+    .positive(VALIDATION_MESSAGES.AMOUNT_POSITIVE('Amount'))
+    .max(999999999.99, VALIDATION_MESSAGES.AMOUNT_TOO_LARGE('Amount')),
+  whom: requiredId('Whom'),
+  categoryId: requiredId('Category'),
+  subCategoryId: requiredId('Sub category'),
   subSubCategoryId: z.number().min(1).optional().nullable(),
-  description: z.string().max(5000).optional().nullable(),
-  paymentMethodId: z.number().min(1, VALIDATION_MESSAGES.REQUIRED),
+  description: nullableText('Description', 5000),
+  paymentMethodId: requiredId('Paid with'),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;

@@ -1,4 +1,9 @@
 export const PERMISSIONS = {
+  ASSET_CREATE: 'asset.create',
+  ASSET_READ: 'asset.read',
+  ASSET_UPDATE: 'asset.update',
+  ASSET_DELETE: 'asset.delete',
+  ASSET_ASSIGN: 'asset.assign',
   EMPLOYEE_CREATE: 'employee.create',
   EMPLOYEE_READ: 'employee.read',
   EMPLOYEE_UPDATE: 'employee.update',

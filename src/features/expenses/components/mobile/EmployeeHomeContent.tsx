@@ -28,8 +28,6 @@ export function EmployeeHomeContent() {
   return (
     <div className="flex flex-col gap-5 px-5 pb-6">
       <header className="flex items-center gap-3 pt-5">
-        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG mark */}
-        <img src="/brand/dx-mark.svg" alt="DX Enterprise" className="size-9 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="text-[13px] text-muted-foreground">{greeting()}</div>
           <div className="truncate text-[17px] font-semibold">{profile?.empName ?? ' '}</div>

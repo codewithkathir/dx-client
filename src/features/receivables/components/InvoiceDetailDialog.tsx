@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Ban, Download, FileText, HandCoins, Pen, Plus, Send, Trash } from 'lucide-react';
+import { Ban, ChevronDown, Download, Eye, FileText, HandCoins, Pen, Plus, Send, Trash } from 'lucide-react';
 
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
+import { FilePreview } from '@/components/shared/FilePreview';
 import { MoneyStrip } from '@/components/shared/MoneyStrip';
 import { SettlementDialog } from '@/components/shared/SettlementDialog';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,8 @@ import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import { InvoiceStatusBadge } from '@/features/receivables/components/InvoiceStatusBadge';
 import { useInvoice, useReceivableMutations } from '@/features/receivables/hooks/useReceivables';
 import type { InvoiceDetail, Receipt } from '@/types/finance.types';
@@ -42,12 +45,14 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onEdit, startWithRecei
   const { sendInvoice, cancelInvoice, recordReceipt, deleteReceipt, downloadPdf } = useReceivableMutations();
   const [receiving, setReceiving] = useState(startWithReceipt);
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [showPdf, setShowPdf] = useState(false);
 
   if (invoiceId === null) return null;
 
   const close = () => {
     setReceiving(false);
     setConfirm(null);
+    setShowPdf(false);
     onClose();
   };
 
@@ -103,6 +108,29 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onEdit, startWithRecei
                     <span className="whitespace-pre-line">{invoice.description ?? '—'}</span>
                   </Detail>
                 </dl>
+
+                <section aria-labelledby="invoice-preview" className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    id="invoice-preview"
+                    aria-expanded={showPdf}
+                    onClick={() => setShowPdf((v) => !v)}
+                    className="flex items-center gap-2 self-start rounded-md text-sm font-semibold hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Eye className="size-4" aria-hidden />
+                    {showPdf ? 'Hide tax invoice preview' : 'Preview tax invoice'}
+                    <ChevronDown className={cn('size-4 transition-transform', showPdf && 'rotate-180')} aria-hidden />
+                  </button>
+                  {showPdf ? (
+                    <FilePreview
+                      key={`${invoice.id}-${invoice.updatedAt}`}
+                      src={API_ENDPOINTS.RECEIVABLES.PDF(invoice.id)}
+                      fileName={`${invoice.invoiceNo}.pdf`}
+                      contentType="application/pdf"
+                      className="h-[min(60vh,520px)]"
+                    />
+                  ) : null}
+                </section>
 
                 <section aria-labelledby="invoice-receipts">
                   <div className="mb-2 flex items-center justify-between">

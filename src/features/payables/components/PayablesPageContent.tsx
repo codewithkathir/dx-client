@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Download, Plus, Search } from 'lucide-react';
+import { Download, Paperclip, Plus, Search } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
+import { AttachmentViewer } from '@/components/shared/AttachmentViewer';
+import { friendlyFileName } from '@/components/shared/file-blob';
 import { MoneySummaryCards } from '@/components/shared/MoneySummaryCards';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
@@ -26,6 +28,7 @@ import { payableService } from '@/features/payables/services/payable.service';
 import { useSupplierOptions } from '@/features/suppliers/hooks/useSuppliers';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import type { Bill, BillListFilters, BillStatus, PayeeType } from '@/types/finance.types';
 import { downloadCsv } from '@/utils/csv.utils';
 import { addDaysIso, formatMoney, todayIso } from '@/utils/money.utils';
@@ -67,6 +70,7 @@ export function PayablesPageContent() {
   const [formBill, setFormBill] = useState<Bill | 'new' | null>(searchParams.get('new') === '1' ? 'new' : null);
   const [payOnOpen, setPayOnOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [documentBill, setDocumentBill] = useState<Bill | null>(null);
 
   const debouncedSearch = useDebounce(searchInput);
   const [pagedSearch, setPagedSearch] = useState(debouncedSearch);
@@ -291,6 +295,17 @@ export function PayablesPageContent() {
                       <button type="button" onClick={() => setOpenBill(bill.id)} className="font-semibold text-primary hover:underline">
                         {bill.billNo}
                       </button>
+                      {bill.attachment ? (
+                        <button
+                          type="button"
+                          onClick={() => setDocumentBill(bill)}
+                          aria-label={`View document ${bill.attachment.fileName}`}
+                          title={bill.attachment.fileName}
+                          className="ml-1.5 inline-flex rounded p-0.5 align-middle text-muted-foreground hover:bg-muted hover:text-primary"
+                        >
+                          <Paperclip className="size-3.5" />
+                        </button>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       {bill.payeeName ?? '—'}
@@ -348,6 +363,13 @@ export function PayablesPageContent() {
           }
         }}
         onClose={closeForm}
+      />
+      <AttachmentViewer
+        open={Boolean(documentBill?.attachment)}
+        onClose={() => setDocumentBill(null)}
+        src={documentBill ? API_ENDPOINTS.PAYABLES.ATTACHMENT(documentBill.id) : undefined}
+        fileName={documentBill?.attachment ? friendlyFileName(documentBill.attachment.fileName, documentBill.billNo) : ''}
+        contentType={documentBill?.attachment?.contentType}
       />
     </section>
   );

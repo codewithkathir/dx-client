@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { BillAttachmentSection } from '@/features/payables/components/BillAttachmentSection';
 import { BillStatusBadge } from '@/features/payables/components/BillStatusBadge';
 import { useBill, usePayableMutations } from '@/features/payables/hooks/usePayables';
 import type { BillDetail, Payment } from '@/types/finance.types';
@@ -119,6 +120,8 @@ export function BillDetailDialog({ billId, onClose, onEdit, startWithPayment = f
                   </Detail>
                   <Detail label="Notes">{bill.notes ?? '—'}</Detail>
                 </dl>
+
+                <BillAttachmentSection bill={bill} />
 
                 <section aria-labelledby="bill-payments">
                   <div className="mb-2 flex items-center justify-between">

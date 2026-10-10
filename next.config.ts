@@ -61,5 +61,27 @@ export default function nextConfig(phase: string): NextConfig {
     output: "standalone",
     allowedDevOrigins: ['*',"app.dxrecord.com", ".dxrecord.com"],
     env: publicEnv,
+    // Don't advertise the framework in responses.
+    poweredByHeader: false,
+    // Browser security headers for every page (the API sets its own via helmet).
+    headers() {
+      return [
+        {
+          source: "/:path*",
+          headers: [
+            // Never render inside another site's frame (clickjacking).
+            { key: "X-Frame-Options", value: "DENY" },
+            { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+            { key: "X-Content-Type-Options", value: "nosniff" },
+            { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+            // Camera stays available to this site for receipt photos; nothing else is needed.
+            { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
+            ...(appEnv === "local"
+              ? []
+              : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
+          ],
+        },
+      ];
+    },
   };
 }

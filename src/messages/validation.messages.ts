@@ -11,4 +11,23 @@ export const VALIDATION_MESSAGES = {
   DUE_DATE_ORDER: "Due date can't be before the bill date.",
   MIN_LENGTH: (min: number) => `Must be at least ${min} characters.`,
   MAX_LENGTH: (max: number) => `Must be at most ${max} characters.`,
+
+  // Field-aware messages: "Phone number can't be blank", "Phone number is too long (maximum is 30 characters)".
+  BLANK: (label: string) => `${label} can't be blank`,
+  TOO_SHORT: (label: string, min: number) => `${label} is too short (minimum is ${min} characters)`,
+  TOO_LONG: (label: string, max: number) => `${label} is too long (maximum is ${max} characters)`,
+  INVALID: (label: string) => `${label} is invalid`,
+  INVALID_EMAIL: (label: string) => `${label} is not a valid email address`,
+  INVALID_PHONE: (label: string) => `${label} is invalid (use digits, spaces, +, - or brackets)`,
+  INVALID_DATE: (label: string) => `${label} is not a valid date`,
+  FILE_TYPE: (label: string) => `${label} must be a JPG, PNG, WebP, PDF or Word file`,
+  FILE_TOO_LARGE: (label: string, maxMb: number) => `${label} is too large (maximum is ${maxMb} MB)`,
+  NOT_SELECTED: (label: string) => `${label} can't be blank`,
+  AMOUNT_POSITIVE: (label: string) => `${label} must be greater than 0`,
+  AMOUNT_TOO_LARGE: (label: string) => `${label} is too large`,
+  AMOUNT_DECIMALS: (label: string) => `${label} can have at most 2 decimal places`,
+  EXACT_DIGITS: (label: string, digits: number) => `${label} must be exactly ${digits} digits`,
+  DATE_NOT_BEFORE: (label: string, other: string) => `${label} can't be before the ${other.toLowerCase()}`,
+  SAME_AS: (label: string, other: string) => `${label} doesn't match ${other.toLowerCase()}`,
+  MUST_DIFFER: (label: string, other: string) => `${label} must be different from the ${other.toLowerCase()}`,
 } as const;

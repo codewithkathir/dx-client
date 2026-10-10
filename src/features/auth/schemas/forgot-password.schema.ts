@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
+import { requiredEmail } from '@/lib/validation';
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().min(1, VALIDATION_MESSAGES.REQUIRED).email(VALIDATION_MESSAGES.EMAIL),
+  email: requiredEmail('Email'),
 });
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;

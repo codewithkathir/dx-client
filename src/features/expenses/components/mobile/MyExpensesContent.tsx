@@ -63,35 +63,40 @@ export function MyExpensesContent() {
 
   return (
     <div className="flex flex-col pb-6">
-      <header className="flex flex-col gap-1 px-5 pt-5 pb-3">
-        <h1 className="text-2xl font-semibold tracking-[-0.025em]">My expenses</h1>
-        <p className="text-[13px] leading-[18px] text-muted-foreground">You can edit or delete a claim until an administrator approves it.</p>
-      </header>
+      {/* Title and filter chips stay pinned while the list scrolls. */}
+      <div className="sticky top-0 z-10 bg-background">
+        <header className="flex flex-col gap-1 px-5 pt-5 pb-3">
+          <h1 className="text-2xl font-semibold tracking-[-0.025em]">My expenses</h1>
+          <p className="text-[13px] leading-[18px] text-muted-foreground">
+            You can edit or delete a claim until an administrator approves it.
+          </p>
+        </header>
 
-      <div role="radiogroup" aria-label="Filter claims" className="flex gap-2 overflow-x-auto px-5 pt-1 pb-3 [scrollbar-width:none]">
-        {CHIPS.map((chip) => {
-          const on = stage === chip.value;
-          const n = count(chip.value);
-          return (
-            <button
-              key={chip.label}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => {
-                setStage(chip.value);
-                setLimit(PAGE);
-              }}
-              className={cn(
-                'h-9 shrink-0 rounded-full border px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors',
-                on ? 'border-primary bg-primary text-primary-foreground' : 'border-input-border bg-card text-[#33415a]',
-              )}
-            >
-              {chip.label}
-              {n !== null ? ` · ${n}` : ''}
-            </button>
-          );
-        })}
+        <div role="radiogroup" aria-label="Filter claims" className="flex gap-2 overflow-x-auto px-5 pt-1 pb-3 [scrollbar-width:none]">
+          {CHIPS.map((chip) => {
+            const on = stage === chip.value;
+            const n = count(chip.value);
+            return (
+              <button
+                key={chip.label}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => {
+                  setStage(chip.value);
+                  setLimit(PAGE);
+                }}
+                className={cn(
+                  'h-9 shrink-0 rounded-full border px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors',
+                  on ? 'border-primary bg-primary text-primary-foreground' : 'border-input-border bg-card text-[#33415a]',
+                )}
+              >
+                {chip.label}
+                {n !== null ? ` · ${n}` : ''}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 px-5">

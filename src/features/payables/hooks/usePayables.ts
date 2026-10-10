@@ -74,6 +74,16 @@ export function usePayableMutations() {
       onSuccess: onSuccess(SUCCESS_MESSAGES.DELETE),
       onError,
     }),
+    uploadAttachment: useMutation({
+      mutationFn: ({ id, file }: { id: number; file: File }) => payableService.uploadAttachment(id, file),
+      onSuccess: onSuccess(SUCCESS_MESSAGES.ATTACHMENT_UPLOADED),
+      onError,
+    }),
+    removeAttachment: useMutation({
+      mutationFn: (id: number) => payableService.removeAttachment(id),
+      onSuccess: onSuccess(SUCCESS_MESSAGES.ATTACHMENT_REMOVED),
+      onError,
+    }),
     recordPayment: useMutation({
       mutationFn: ({ id, payload }: { id: number; payload: PaymentPayload }) =>
         payableService.recordPayment(id, payload),

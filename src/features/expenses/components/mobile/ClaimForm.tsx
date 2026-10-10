@@ -177,7 +177,7 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
             />
           </div>
           {errors.amount ? (
-            <p className="text-[13px] text-destructive">{errors.amount.message?.includes('number') ? 'Enter the amount' : errors.amount.message}</p>
+            <p className="text-[13px] text-destructive">{errors.amount.message}</p>
           ) : vatIncluded ? (
             <p className="text-xs text-muted-foreground">If VAT 5% is included: {formatMoney(vatIncluded)}</p>
           ) : null}
@@ -207,15 +207,15 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               );
             })}
           </div>
-          {errors.categoryId ? <p className="text-[13px] text-destructive">Pick a category</p> : null}
+          {errors.categoryId ? <p className="text-[13px] text-destructive">{errors.categoryId.message}</p> : null}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Date" htmlFor={`${formId}-date`}>
+          <FormField label="Date" htmlFor={`${formId}-date`} error={errors.date?.message}>
             <input type="hidden" {...register('date')} />
             <Input id={`${formId}-date`} readOnly value={formatExpenseDate(date)} className={cn(INPUT, 'bg-muted')} />
           </FormField>
-          <FormField label="Sub category" htmlFor={`${formId}-sub`} required error={errors.subCategoryId ? 'Required' : undefined}>
+          <FormField label="Sub category" htmlFor={`${formId}-sub`} required error={errors.subCategoryId?.message}>
             <Select
               id={`${formId}-sub`}
               className={INPUT}
@@ -254,7 +254,7 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
         ) : null}
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Whom" htmlFor={`${formId}-whom`} required error={errors.whom ? 'Required' : undefined}>
+          <FormField label="Whom" htmlFor={`${formId}-whom`} required error={errors.whom?.message}>
             <Select id={`${formId}-whom`} className={INPUT} {...register('whom', { valueAsNumber: true })}>
               <option value={0}>Select…</option>
               {whomOptions.map((w) => (
@@ -264,7 +264,7 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               ))}
             </Select>
           </FormField>
-          <FormField label="Paid with" htmlFor={`${formId}-pay`} required error={errors.paymentMethodId ? 'Required' : undefined}>
+          <FormField label="Paid with" htmlFor={`${formId}-pay`} required error={errors.paymentMethodId?.message}>
             <Select id={`${formId}-pay`} className={INPUT} {...register('paymentMethodId', { valueAsNumber: true })}>
               <option value={0}>Select…</option>
               {paymentMethods.map((p) => (

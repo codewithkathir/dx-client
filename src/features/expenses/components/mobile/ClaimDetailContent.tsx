@@ -6,13 +6,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { Check, ChevronRight, Image as ImageIcon, Loader2, MessageSquareText, Pen, Trash, X } from 'lucide-react';
 
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
+import { AttachmentViewer } from '@/components/shared/AttachmentViewer';
+import { friendlyFileName } from '@/components/shared/file-blob';
 import { BottomSheet } from '@/components/mobile/BottomSheet';
 import { MobileTopBar } from '@/components/mobile/MobileTopBar';
 import { mobileButton } from '@/components/mobile/mobile.styles';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { USER_ROUTES } from '@/constants/routes.constants';
-import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
 import { getExpenseStage } from '@/features/expenses/components/ExpenseStageBadge';
 import { useClaimLabels } from '@/features/expenses/hooks/useClaimLabels';
 import { useExpenseMutations } from '@/features/expenses/hooks/useExpenseMutations';
@@ -20,6 +21,7 @@ import { useExpense, usePaymentMethodDropdown, useWhomDropdown } from '@/feature
 import { claimStage, isClaimEditable } from '@/features/expenses/utils/claim.utils';
 import { formatExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
 import { cn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import type { Expense } from '@/types/expense.types';
 import { formatMoney } from '@/utils/money.utils';
 
@@ -232,26 +234,12 @@ export function ClaimDetailContent() {
             </div>
           </BottomSheet>
 
-          {viewingReceipt && claim.supportFile ? (
-            <div role="dialog" aria-modal="true" aria-label="Receipt" className="fixed inset-0 z-50 flex justify-center bg-[#0f1c2e]">
-              <div className="flex w-full max-w-[480px] flex-col">
-                <header className="flex items-center gap-3 px-4 pt-4 pb-3 text-white">
-                  <button
-                    type="button"
-                    aria-label="Close"
-                    onClick={() => setViewingReceipt(false)}
-                    className="flex size-11 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20"
-                  >
-                    <X className="size-5" />
-                  </button>
-                  <div className="min-w-0 flex-1 truncate text-[15px] font-medium">{supportFileLabel(claim.supportFile)}</div>
-                </header>
-                <div className="flex min-h-0 flex-1 flex-col justify-center overflow-auto rounded-t-2xl bg-card p-3">
-                  <ExpenseAttachmentPreview expenseId={claim.id} supportFile={claim.supportFile} variant="detail" />
-                </div>
-              </div>
-            </div>
-          ) : null}
+          <AttachmentViewer
+            open={viewingReceipt && Boolean(claim.supportFile)}
+            onClose={() => setViewingReceipt(false)}
+            src={API_ENDPOINTS.EMPLOYEE_EXPENSES.SUPPORT_FILE(claim.id)}
+            fileName={friendlyFileName(supportFileLabel(claim.supportFile) ?? '', `receipt-${claim.id}`)}
+          />
         </>
       )}
     </div>

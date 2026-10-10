@@ -1,13 +1,10 @@
 import { z } from 'zod';
 
-import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
+import { password, requiredEmail } from '@/lib/validation';
 
 export const loginSchema = z.object({
-  email: z.string().min(1, VALIDATION_MESSAGES.REQUIRED).email(VALIDATION_MESSAGES.EMAIL),
-  password: z
-    .string()
-    .min(1, VALIDATION_MESSAGES.REQUIRED)
-    .min(8, VALIDATION_MESSAGES.PASSWORD_MIN),
+  email: requiredEmail('Email'),
+  password: password('Password'),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;

@@ -45,6 +45,14 @@ export type BillStatus = (typeof BILL_STATUSES)[number];
 export type PayeeType = 'supplier' | 'employee';
 export type VatRate = 0 | 5;
 
+export interface BillAttachment {
+  fileName: string;
+  contentType: string;
+  isImage: boolean;
+  /** "bill" = uploaded on the bill; "expense" = the linked claim's receipt (read-only). */
+  source: 'bill' | 'expense';
+}
+
 export interface Bill {
   id: number;
   billNo: string;
@@ -68,6 +76,7 @@ export interface Bill {
   expenseId: number | null;
   source: 'manual' | 'expense';
   notes: string | null;
+  attachment: BillAttachment | null;
   status: BillStatus;
   isOverdue: boolean;
   createdAt: string;

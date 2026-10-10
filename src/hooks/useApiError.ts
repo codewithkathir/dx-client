@@ -26,7 +26,15 @@ export function useApiError() {
       }
 
       if (options?.toast !== false) {
-        toast.error(normalized.message);
+        // Field errors ("Phone number can't be blank") say more than "Validation failed".
+        const [first, ...rest] = normalized.errors;
+        if (first) {
+          toast.error(first.message, {
+            description: rest.length > 0 ? rest.map((e) => e.message).join(' · ') : undefined,
+          });
+        } else {
+          toast.error(normalized.message);
+        }
       }
 
       return normalized;
