@@ -7,7 +7,7 @@ import { supplierService } from '@/features/suppliers/services/supplier.service'
 import { useApiError } from '@/hooks/useApiError';
 import { queryKeys } from '@/lib/query-keys';
 import { SUCCESS_MESSAGES } from '@/messages/success.messages';
-import type { PartyListFilters, SupplierPayload } from '@/types/finance.types';
+import type { PartyListFilters, PartyPhotoChange, SupplierPayload } from '@/types/finance.types';
 
 export function useSuppliers(filters: PartyListFilters) {
   return useQuery({
@@ -31,19 +31,27 @@ export function useSupplierMutations() {
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all });
 
   const createSupplier = useMutation({
-    mutationFn: (payload: SupplierPayload) => supplierService.create(payload),
+    mutationFn: async ({ payload, photo }: { payload: SupplierPayload; photo?: PartyPhotoChange }) => {
+      const created = await supplierService.create(payload);
+      await supplierService.applyPhotoChange(created.id, photo).catch(handleError);
+      return created;
+    },
+    // A failed picture upload is reported on its own; the record is still saved.
+    onSettled: invalidate,
     onSuccess: () => {
-      invalidate();
       toast.success(SUCCESS_MESSAGES.CREATE);
     },
     onError: (err) => handleError(err),
   });
 
   const updateSupplier = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: SupplierPayload }) =>
-      supplierService.update(id, payload),
+    mutationFn: async ({ id, payload, photo }: { id: number; payload: SupplierPayload; photo?: PartyPhotoChange }) => {
+      const updated = await supplierService.update(id, payload);
+      await supplierService.applyPhotoChange(id, photo).catch(handleError);
+      return updated;
+    },
+    onSettled: invalidate,
     onSuccess: () => {
-      invalidate();
       toast.success(SUCCESS_MESSAGES.UPDATE);
     },
     onError: (err) => handleError(err),

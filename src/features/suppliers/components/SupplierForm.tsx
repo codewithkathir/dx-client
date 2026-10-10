@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -12,7 +13,10 @@ import {
   supplierSchema,
   type SupplierFormValues,
 } from '@/features/suppliers/schemas/supplier.schema';
-import type { Supplier, SupplierPayload } from '@/types/finance.types';
+import { partyPhotoUrl } from '@/components/shared/PartyAvatar';
+import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
+import { API_ENDPOINTS } from '@/services/endpoints';
+import type { Supplier, SupplierPayload, PartyPhotoChange } from '@/types/finance.types';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -22,7 +26,7 @@ const STATUS_OPTIONS = [
 interface SupplierFormProps {
   supplier?: Supplier;
   isSubmitting: boolean;
-  onSubmit: (payload: SupplierPayload) => void;
+  onSubmit: (payload: SupplierPayload, photo: PartyPhotoChange) => void;
   onCancel: () => void;
 }
 
@@ -60,10 +64,23 @@ export function SupplierForm({ supplier, isSubmitting, onSubmit, onCancel }: Sup
     },
   });
   const { errors } = formState;
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const hasSavedPhoto = Boolean(supplier?.photo) && !removePhoto;
 
   return (
-    <form onSubmit={handleSubmit((values) => onSubmit(toPayload(values)))} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit((values) => onSubmit(toPayload(values), { file: photoFile, remove: removePhoto }))} className="space-y-4" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <ProfilePhotoUpload
+              label="Picture"
+              value={photoFile}
+              onChange={setPhotoFile}
+              hasExistingPhoto={hasSavedPhoto}
+              existingPhotoFetchUrl={supplier ? partyPhotoUrl(API_ENDPOINTS.SUPPLIERS.PHOTO(supplier.id), supplier.photo) : null}
+              onRemoveExisting={() => setRemovePhoto(true)}
+            />
+        </div>
         <FormField label="Company name" htmlFor="companyName" required error={errors.companyName?.message} className="sm:col-span-2">
           <Input id="companyName" {...register('companyName')} />
         </FormField>

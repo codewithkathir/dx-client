@@ -67,12 +67,14 @@ export function UserLayout({ children }: UserLayoutProps) {
   }, [pathname]);
 
   return (
-    <div className="flex h-dvh justify-center bg-[#e9edf4]">
+    // Pinned to the viewport: body is min-h-screen (100vh), which on mobile is taller than the
+    // visible area while the browser bar shows, so an h-dvh shell left a blank strip to scroll to.
+    <div className="fixed inset-0 flex justify-center bg-[#e9edf4]">
       <div className="flex h-full w-full max-w-[480px] flex-col overflow-hidden bg-background shadow-[0_0_0_1px_var(--border)] min-[481px]:shadow-md">
         <AppHeader />
         <div className="relative flex min-h-0 flex-1 flex-col">
           <LoadingBar />
-          <main ref={mainRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <main ref={mainRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
             {/* Keyed by route so each screen fades in on navigation. */}
             <div key={pathname} className="page-in flex min-h-full flex-1 flex-col">
               {children}

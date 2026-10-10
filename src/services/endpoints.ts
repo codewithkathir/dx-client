@@ -91,6 +91,7 @@ export const API_ENDPOINTS = {
     LIST: `${V1}/admin/suppliers`,
     OPTIONS: `${V1}/admin/suppliers/options`,
     DETAIL: (id: string | number) => `${V1}/admin/suppliers/${id}`,
+    PHOTO: (id: string | number) => `${V1}/admin/suppliers/${id}/photo`,
   },
   PAYABLES: {
     LIST: `${V1}/admin/payables`,
@@ -107,6 +108,7 @@ export const API_ENDPOINTS = {
     LIST: `${V1}/admin/customers`,
     OPTIONS: `${V1}/admin/customers/options`,
     DETAIL: (id: string | number) => `${V1}/admin/customers/${id}`,
+    PHOTO: (id: string | number) => `${V1}/admin/customers/${id}/photo`,
   },
   RECEIVABLES: {
     LIST: `${V1}/admin/receivables`,

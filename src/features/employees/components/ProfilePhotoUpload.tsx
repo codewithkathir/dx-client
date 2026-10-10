@@ -22,6 +22,9 @@ interface ProfilePhotoUploadProps {
   hasExistingPhoto?: boolean;
   required?: boolean;
   error?: string;
+  label?: string;
+  /** When set, a saved photo shows a Remove button that calls this. */
+  onRemoveExisting?: () => void;
 }
 
 export function ProfilePhotoUpload({
@@ -31,6 +34,8 @@ export function ProfilePhotoUpload({
   hasExistingPhoto,
   required,
   error,
+  label = 'Profile photo',
+  onRemoveExisting,
 }: ProfilePhotoUploadProps) {
   const [loaded, setLoaded] = useState<{ source: File | string; src: string | null } | null>(
     null,
@@ -106,7 +111,7 @@ export function ProfilePhotoUpload({
 
   return (
     <FormField
-      label="Profile photo"
+      label={label}
       required={required}
       error={error ?? localError}
     >
@@ -139,13 +144,12 @@ export function ProfilePhotoUpload({
               maxBytes={MAX_BYTES}
               maxDimension={1024}
             />
-            {/* Only a newly picked file can be removed; there is no API to delete a saved photo. */}
-            {value ? (
+            {value || (existingUrl && onRemoveExisting) ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => handleFile(null)}
+                onClick={() => (value ? handleFile(null) : onRemoveExisting?.())}
               >
                 <X className="size-4" />
                 Remove

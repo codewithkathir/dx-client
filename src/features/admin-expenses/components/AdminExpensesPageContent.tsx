@@ -231,11 +231,10 @@ export function AdminExpensesPageContent() {
               <EmptyState title="No expense claims" description="Claims employees submit will appear here. Try clearing the filters." />
             </div>
           ) : (
-            <Table className="min-w-[1080px] animate-in fade-in-0 duration-300">
+            <Table className="min-w-[960px] animate-in fade-in-0 duration-300">
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Employee</TableHead>
                   <TableHead>Whom</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Sub category</TableHead>
@@ -250,8 +249,7 @@ export function AdminExpensesPageContent() {
                 {items.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell className="whitespace-nowrap">{formatExpenseDate(expense.date)}</TableCell>
-                    <TableCell className="font-medium whitespace-nowrap">{employeeName(expense)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{lookups.whomMap[expense.whom] ?? '—'}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap">{lookups.whomMap[expense.whom] ?? '—'}</TableCell>
                     <TableCell>{lookups.categoryMap[expense.categoryId] ?? '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{lookups.subCategoryMap[expense.subCategoryId] ?? '—'}</TableCell>
                     <TableCell className="text-right font-semibold tabular-nums">{formatMoney(expense.amount)}</TableCell>

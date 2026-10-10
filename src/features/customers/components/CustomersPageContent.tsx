@@ -8,6 +8,8 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
+import { PartyAvatar, partyPhotoUrl } from '@/components/shared/PartyAvatar';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
 import { Badge } from '@/components/ui/badge';
@@ -33,14 +35,6 @@ import { formatMoney } from '@/utils/money.utils';
 import type { PartyListFilters, PartyStatus, Customer } from '@/types/finance.types';
 
 /** "Gulf Office Supplies" → "GO". */
-function companyInitials(name: string): string {
-  const words = name
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-  return ((words[0]?.[0] ?? '') + (words[1]?.[0] ?? words[0]?.[1] ?? '')).toUpperCase();
-}
-
 type DialogMode = 'create' | 'edit' | 'delete' | null;
 
 export function CustomersPageContent() {
@@ -154,12 +148,10 @@ export function CustomersPageContent() {
                     <TableRow key={row.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <span
-                            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[13px] font-semibold bg-status-success text-status-success-ink"
-                            aria-hidden
-                          >
-                            {companyInitials(row.companyName)}
-                          </span>
+                          <PartyAvatar
+                            name={row.companyName}
+                            photoUrl={partyPhotoUrl(API_ENDPOINTS.CUSTOMERS.PHOTO(row.id), row.photo)}
+                          />
                           <div className="min-w-0">
                             <div className="font-medium">{row.companyName}</div>
                             <div className="text-xs text-muted-foreground">
@@ -240,11 +232,11 @@ export function CustomersPageContent() {
             <CustomerForm
               customer={active ?? undefined}
               isSubmitting={createCustomer.isPending || updateCustomer.isPending}
-              onSubmit={(payload) => {
+              onSubmit={(payload, photo) => {
                 if (dialogMode === 'create') {
-                  createCustomer.mutate(payload, { onSuccess: closeDialog });
+                  createCustomer.mutate({ payload, photo }, { onSuccess: closeDialog });
                 } else if (active) {
-                  updateCustomer.mutate({ id: active.id, payload }, { onSuccess: closeDialog });
+                  updateCustomer.mutate({ id: active.id, payload, photo }, { onSuccess: closeDialog });
                 }
               }}
               onCancel={closeDialog}

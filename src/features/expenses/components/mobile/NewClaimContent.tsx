@@ -21,7 +21,7 @@ export function NewClaimContent() {
   if (submitted) return <ClaimSubmitted claim={submitted} />;
 
   return (
-    <div className="flex min-h-full flex-col bg-card">
+    <div className="flex flex-1 flex-col bg-card">
       <MobileTopBar title="New expense" backHref={USER_ROUTES.HOME} className="border-b border-border" />
       <ClaimForm
         isSubmitting={createExpense.isPending}
@@ -36,7 +36,7 @@ export function NewClaimContent() {
 function ClaimSubmitted({ claim }: { claim: Expense }) {
   const { title } = useClaimLabels([claim]);
   return (
-    <div className="flex min-h-full flex-col bg-card px-6 pt-6 pb-8">
+    <div className="flex flex-1 flex-col bg-card px-6 pt-6 pb-8">
       <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
         <div className="relative size-28" aria-hidden>
           <div className="absolute inset-0 rounded-full bg-status-success" />

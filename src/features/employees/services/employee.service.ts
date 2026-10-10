@@ -101,8 +101,12 @@ class EmployeeService extends BaseService {
   }
 
   async exportCsv(filters: EmployeeListFilters): Promise<Blob> {
+    // The export returns every match and its query schema rejects page / limit.
+    const params = buildListParams(filters);
+    delete params.page;
+    delete params.limit;
     const response = await this.getRawResponse<Blob>(API_ENDPOINTS.EMPLOYEES.EXPORT, {
-      params: { ...buildListParams({ ...filters, page: 1, limit: 5000 }), format: 'csv' },
+      params: { ...params, format: 'csv' },
       responseType: 'blob',
     });
     return response.data;

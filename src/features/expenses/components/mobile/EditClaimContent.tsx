@@ -19,7 +19,7 @@ export function EditClaimContent() {
   const back = USER_ROUTES.EXPENSE_DETAIL(id);
 
   return (
-    <div className="flex min-h-full flex-col bg-card">
+    <div className="flex flex-1 flex-col bg-card">
       <MobileTopBar title="Edit claim" backHref={back} className="border-b border-border" />
       {isError ? (
         <div className="p-5">

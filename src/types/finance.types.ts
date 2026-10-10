@@ -16,6 +16,8 @@ export interface Supplier {
   whatsappNo: string | null;
   status: PartyStatus;
   comments: string | null;
+  /** Saved picture path; load it through the authenticated PHOTO endpoint. */
+  photo: string | null;
   createdAt: string;
   updatedAt: string;
   /** List rows only. */
@@ -29,8 +31,16 @@ export interface SupplierOption {
 }
 
 export type SupplierPayload = Partial<
-  Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>
+  Omit<Supplier, 'id' | 'createdAt' | 'updatedAt' | 'photo'>
 > & { companyName: string };
+
+/** Picture change submitted with a supplier / customer form. */
+export interface PartyPhotoChange {
+  /** Newly picked picture to upload. */
+  file: File | null;
+  /** Remove the saved picture (ignored when a new file is picked). */
+  remove: boolean;
+}
 
 export interface PartyListFilters {
   page?: number;

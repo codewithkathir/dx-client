@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -14,7 +15,10 @@ import {
   customerSchema,
   type CustomerFormValues,
 } from '@/features/customers/schemas/customer.schema';
-import type { Customer, CustomerPayload } from '@/types/finance.types';
+import { partyPhotoUrl } from '@/components/shared/PartyAvatar';
+import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
+import { API_ENDPOINTS } from '@/services/endpoints';
+import type { Customer, CustomerPayload, PartyPhotoChange } from '@/types/finance.types';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -24,7 +28,7 @@ const STATUS_OPTIONS = [
 interface CustomerFormProps {
   customer?: Customer;
   isSubmitting: boolean;
-  onSubmit: (payload: CustomerPayload) => void;
+  onSubmit: (payload: CustomerPayload, photo: PartyPhotoChange) => void;
   onCancel: () => void;
 }
 
@@ -68,11 +72,24 @@ export function CustomerForm({ customer, isSubmitting, onSubmit, onCancel }: Cus
     },
   });
   const { errors } = formState;
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const hasSavedPhoto = Boolean(customer?.photo) && !removePhoto;
 
   return (
-    <form onSubmit={handleSubmit((values) => onSubmit(toPayload(values)))} className="flex flex-col gap-[18px]" noValidate>
+    <form onSubmit={handleSubmit((values) => onSubmit(toPayload(values), { file: photoFile, remove: removePhoto }))} className="flex flex-col gap-[18px]" noValidate>
       <FormSection title="Company">
         <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <ProfilePhotoUpload
+              label="Picture"
+              value={photoFile}
+              onChange={setPhotoFile}
+              hasExistingPhoto={hasSavedPhoto}
+              existingPhotoFetchUrl={customer ? partyPhotoUrl(API_ENDPOINTS.CUSTOMERS.PHOTO(customer.id), customer.photo) : null}
+              onRemoveExisting={() => setRemovePhoto(true)}
+            />
+          </div>
           <FormField label="Company name" htmlFor="companyName" required error={errors.companyName?.message} className="sm:col-span-2">
             <Input id="companyName" {...register('companyName')} />
           </FormField>

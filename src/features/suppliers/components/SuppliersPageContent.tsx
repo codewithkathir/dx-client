@@ -8,6 +8,8 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
+import { PartyAvatar, partyPhotoUrl } from '@/components/shared/PartyAvatar';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
 import { Badge } from '@/components/ui/badge';
@@ -32,14 +34,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import type { PartyListFilters, PartyStatus, Supplier } from '@/types/finance.types';
 
 /** "Gulf Office Supplies" → "GO". */
-function companyInitials(name: string): string {
-  const words = name
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-  return ((words[0]?.[0] ?? '') + (words[1]?.[0] ?? words[0]?.[1] ?? '')).toUpperCase();
-}
-
 function supplierBillsLabel(row: Supplier): string {
   const open = row.openBillCount ?? 0;
   const drafts = row.draftBillCount ?? 0;
@@ -160,12 +154,10 @@ export function SuppliersPageContent() {
                     <TableRow key={row.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <span
-                            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[13px] font-semibold bg-muted text-[#33415a]"
-                            aria-hidden
-                          >
-                            {companyInitials(row.companyName)}
-                          </span>
+                          <PartyAvatar
+                            name={row.companyName}
+                            photoUrl={partyPhotoUrl(API_ENDPOINTS.SUPPLIERS.PHOTO(row.id), row.photo)}
+                          />
                           <div className="min-w-0">
                             <div className="font-medium">{row.companyName}</div>
                             <div className="text-xs text-muted-foreground">
@@ -243,11 +235,11 @@ export function SuppliersPageContent() {
             <SupplierForm
               supplier={active ?? undefined}
               isSubmitting={createSupplier.isPending || updateSupplier.isPending}
-              onSubmit={(payload) => {
+              onSubmit={(payload, photo) => {
                 if (dialogMode === 'create') {
-                  createSupplier.mutate(payload, { onSuccess: closeDialog });
+                  createSupplier.mutate({ payload, photo }, { onSuccess: closeDialog });
                 } else if (active) {
-                  updateSupplier.mutate({ id: active.id, payload }, { onSuccess: closeDialog });
+                  updateSupplier.mutate({ id: active.id, payload, photo }, { onSuccess: closeDialog });
                 }
               }}
               onCancel={closeDialog}

@@ -7,7 +7,7 @@ import { customerService } from '@/features/customers/services/customer.service'
 import { useApiError } from '@/hooks/useApiError';
 import { queryKeys } from '@/lib/query-keys';
 import { SUCCESS_MESSAGES } from '@/messages/success.messages';
-import type { PartyListFilters, CustomerPayload } from '@/types/finance.types';
+import type { PartyListFilters, PartyPhotoChange, CustomerPayload } from '@/types/finance.types';
 
 export function useCustomers(filters: PartyListFilters) {
   return useQuery({
@@ -31,19 +31,27 @@ export function useCustomerMutations() {
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
 
   const createCustomer = useMutation({
-    mutationFn: (payload: CustomerPayload) => customerService.create(payload),
+    mutationFn: async ({ payload, photo }: { payload: CustomerPayload; photo?: PartyPhotoChange }) => {
+      const created = await customerService.create(payload);
+      await customerService.applyPhotoChange(created.id, photo).catch(handleError);
+      return created;
+    },
+    // A failed picture upload is reported on its own; the record is still saved.
+    onSettled: invalidate,
     onSuccess: () => {
-      invalidate();
       toast.success(SUCCESS_MESSAGES.CREATE);
     },
     onError: (err) => handleError(err),
   });
 
   const updateCustomer = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: CustomerPayload }) =>
-      customerService.update(id, payload),
+    mutationFn: async ({ id, payload, photo }: { id: number; payload: CustomerPayload; photo?: PartyPhotoChange }) => {
+      const updated = await customerService.update(id, payload);
+      await customerService.applyPhotoChange(id, photo).catch(handleError);
+      return updated;
+    },
+    onSettled: invalidate,
     onSuccess: () => {
-      invalidate();
       toast.success(SUCCESS_MESSAGES.UPDATE);
     },
     onError: (err) => handleError(err),

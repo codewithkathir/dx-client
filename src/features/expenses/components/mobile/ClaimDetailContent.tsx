@@ -107,7 +107,7 @@ export function ClaimDetailContent() {
   const pill = claim ? getExpenseStage(claim) : null;
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex flex-1 flex-col">
       <MobileTopBar
         title={`Claim #${Number.isInteger(id) ? id : ''}`}
         backHref={USER_ROUTES.EXPENSES}

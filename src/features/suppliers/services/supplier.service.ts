@@ -2,6 +2,7 @@ import { API_ENDPOINTS } from '@/services/endpoints';
 import { BaseService } from '@/services/base.service';
 import type {
   ListResult,
+  PartyPhotoChange,
   PartyListFilters,
   Supplier,
   SupplierOption,
@@ -40,6 +41,22 @@ class SupplierService extends BaseService {
 
   remove(id: number): Promise<void> {
     return super.delete<void>(API_ENDPOINTS.SUPPLIERS.DETAIL(id));
+  }
+
+  uploadPhoto(id: number, file: File): Promise<Supplier> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return this.put<Supplier>(API_ENDPOINTS.SUPPLIERS.PHOTO(id), formData);
+  }
+
+  removePhoto(id: number): Promise<Supplier> {
+    return super.delete<Supplier>(API_ENDPOINTS.SUPPLIERS.PHOTO(id));
+  }
+
+  /** Uploads or removes the picture after the supplier itself is saved. */
+  async applyPhotoChange(id: number, change?: PartyPhotoChange): Promise<void> {
+    if (change?.file) await this.uploadPhoto(id, change.file);
+    else if (change?.remove) await this.removePhoto(id);
   }
 }
 
