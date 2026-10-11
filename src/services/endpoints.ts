@@ -141,5 +141,9 @@ export const API_ENDPOINTS = {
     ALERTS: `${V1}/admin/dashboard/alerts`,
     SEARCH: `${V1}/admin/search`,
   },
+  INVOICE_BRANDING: {
+    DETAIL: `${V1}/admin/invoice-branding`,
+    IMAGE: (kind: string) => `${V1}/admin/invoice-branding/${kind}`,
+  },
   HEALTH: '/health',
 } as const;

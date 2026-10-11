@@ -9,6 +9,7 @@ import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { FormField } from '@/components/forms/FormField';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { RoleGuard } from '@/components/shared/RoleGuard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,11 +17,13 @@ import { Dialog, DialogBody, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AUTH_PORTAL } from '@/constants/auth.constants';
+import { PERMISSIONS } from '@/constants/permissions.constants';
 import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
 import { AccountAvatar } from '@/features/auth/components/AccountAvatar';
 import { AdminProfileForm } from '@/features/auth/components/AdminProfileForm';
 import { useAdminProfile } from '@/features/auth/hooks/useAdminProfile';
 import { useChangePassword } from '@/features/auth/hooks/useChangePassword';
+import { InvoiceBrandingCard } from '@/features/invoice-branding';
 import { changePasswordSchema, type ChangePasswordFormValues } from '@/features/auth/schemas/change-password.schema';
 import { adminProfilePhotoUrl } from '@/features/auth/utils/auth-photo.utils';
 import type { AdminProfile } from '@/types/admin-auth.types';
@@ -147,7 +150,7 @@ function SecurityCard() {
   );
 }
 
-/** Design "Settings": profile card + security card, single column. */
+/** Design "Settings": profile, security and (for invoice managers) invoice branding, single column. */
 export function AdminSettingsPageContent() {
   const { data: profile, isLoading, isError, error, refetch } = useAdminProfile();
   const [editing, setEditing] = useState(false);
@@ -171,6 +174,10 @@ export function AdminSettingsPageContent() {
       )}
 
       <SecurityCard />
+
+      <RoleGuard permission={PERMISSIONS.RECEIVABLE_UPDATE}>
+        <InvoiceBrandingCard />
+      </RoleGuard>
 
       <Dialog open={editing && Boolean(profile)} onOpenChange={(open) => !open && setEditing(false)}>
         <DialogContent onClose={() => setEditing(false)} className="max-w-[540px]">

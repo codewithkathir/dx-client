@@ -67,6 +67,7 @@ export const queryKeys = {
     detail: (id: number) => ['assets', id] as const,
     mine: ['assets', 'mine'] as const,
   },
+  invoiceBranding: ['invoice-branding'] as const,
   suppliers: {
     all: ['suppliers'] as const,
     list: (filters?: PartyListFilters) => ['suppliers', 'list', filters] as const,
