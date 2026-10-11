@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { optionalPhone, requiredDate, requiredPhone, requiredText } from '@/lib/validation';
+import { optionalPhone, phonesMatchCountry, requiredDate, requiredPhone, requiredText } from '@/lib/validation';
 
 // Mirrors the server's employeeUpdateProfileSchema / adminUpdateProfileSchema.
 export const employeeProfileSchema = z.object({
@@ -11,7 +11,7 @@ export const employeeProfileSchema = z.object({
   homeAddress: requiredText('Home address', 500),
   cityState: requiredText('City / State', 150),
   country: requiredText('Country', 100),
-});
+}).superRefine(phonesMatchCountry({ phoneNo: 'Phone number', whatsappNo: 'WhatsApp number' }));
 
 export type EmployeeProfileFormValues = z.infer<typeof employeeProfileSchema>;
 

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
 import { DatePicker } from '@/components/forms/DatePicker';
+import { CountrySelect } from '@/components/forms/CountrySelect';
 import { FormField } from '@/components/forms/FormField';
 import { todayIso } from '@/utils/money.utils';
 import { Button } from '@/components/ui/button';
@@ -96,7 +97,11 @@ export function EmployeeProfileForm({ profile, onDone }: EmployeeProfileFormProp
           <Input id="cityState" autoComplete="address-level1" {...register('cityState')} />
         </FormField>
         <FormField label="Country" htmlFor="country" required error={errors.country?.message}>
-          <Input id="country" autoComplete="country-name" {...register('country')} />
+          <CountrySelect
+            id="country"
+            savedValue={profile.country}
+            {...register('country', { deps: ['phoneNo', 'whatsappNo'] })}
+          />
         </FormField>
         <FormField
           label="Home address"

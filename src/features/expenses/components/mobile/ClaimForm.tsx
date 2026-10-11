@@ -206,32 +206,22 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
           ) : null}
         </div>
 
-        <div className="space-y-2">
-          <span id={`${formId}-cat`} className="text-sm font-medium">
-            Category <span className="text-destructive">*</span>
-          </span>
-          <div role="radiogroup" aria-labelledby={`${formId}-cat`} className="flex flex-wrap gap-2">
-            {categories.map((c) => {
-              const on = c.id === categoryId;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => pickCategory(c.id)}
-                  className={cn(
-                    'h-10 rounded-full border px-3.5 text-sm transition-colors',
-                    on ? 'border-primary bg-brand-blue-50 font-semibold text-brand-blue-hover' : 'border-input-border bg-card font-medium text-[#33415a]',
-                  )}
-                >
-                  {c.name}
-                </button>
-              );
-            })}
-          </div>
-          {errors.categoryId ? <p className="text-[13px] text-destructive">{errors.categoryId.message}</p> : null}
-        </div>
+        <FormField label="Category" htmlFor={`${formId}-cat`} required error={errors.categoryId?.message}>
+          <Select
+            id={`${formId}-cat`}
+            className={INPUT}
+            value={categoryId}
+            aria-invalid={errors.categoryId ? true : undefined}
+            onChange={(e) => pickCategory(Number(e.target.value))}
+          >
+            <option value={0}>Select…</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </FormField>
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Date" htmlFor={`${formId}-date`} error={errors.date?.message}>

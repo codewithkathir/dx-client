@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
+import { CountrySelect } from '@/components/forms/CountrySelect';
 import { FormField } from '@/components/forms/FormField';
 import { FormSection } from '@/components/forms/FormSection';
 import { MoneyInput } from '@/components/forms/MoneyInput';
@@ -19,6 +20,7 @@ import { partyPhotoUrl } from '@/components/shared/PartyAvatar';
 import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
 import { API_ENDPOINTS } from '@/services/endpoints';
 import type { Customer, CustomerPayload, PartyPhotoChange } from '@/types/finance.types';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -63,7 +65,7 @@ export function CustomerForm({ customer, isSubmitting, onSubmit, onCancel }: Cus
       whatsappNo: customer?.whatsappNo ?? '',
       companyAddress: customer?.companyAddress ?? '',
       cityState: customer?.cityState ?? '',
-      country: customer?.country ?? 'UAE',
+      country: customer?.country ?? DEFAULT_COUNTRY,
       trn: customer?.trn ?? '',
       creditLimit: customer?.creditLimit != null ? String(customer.creditLimit) : '',
       paymentTerms: customer?.paymentTerms ?? '',
@@ -112,7 +114,12 @@ export function CustomerForm({ customer, isSubmitting, onSubmit, onCancel }: Cus
             <Input id="cityState" {...register('cityState')} />
           </FormField>
           <FormField label="Country" htmlFor="country" error={errors.country?.message}>
-            <Input id="country" {...register('country')} />
+            <CountrySelect
+              id="country"
+              allowEmpty
+              savedValue={customer?.country}
+              {...register('country', { deps: ['phone1', 'whatsappNo'] })}
+            />
           </FormField>
         </div>
       </FormSection>

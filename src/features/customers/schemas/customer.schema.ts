@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { optionalEmail, optionalPhone, optionalText, requiredText } from '@/lib/validation';
+import { optionalEmail, optionalPhone, optionalText, phonesMatchCountry, requiredText } from '@/lib/validation';
 import { VALIDATION_MESSAGES } from '@/messages/validation.messages';
 
 export const customerSchema = z.object({
@@ -20,6 +20,6 @@ export const customerSchema = z.object({
   paymentTerms: optionalText('Payment terms', 100),
   status: z.enum(['active', 'inactive']),
   comments: optionalText('Comments', 2000),
-});
+}).superRefine(phonesMatchCountry({ phone1: 'Phone number', whatsappNo: 'WhatsApp number' }));
 
 export type CustomerFormValues = z.infer<typeof customerSchema>;

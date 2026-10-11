@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
+import { CountrySelect } from '@/components/forms/CountrySelect';
 import { FormField } from '@/components/forms/FormField';
 import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { partyPhotoUrl } from '@/components/shared/PartyAvatar';
 import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
 import { API_ENDPOINTS } from '@/services/endpoints';
 import type { Supplier, SupplierPayload, PartyPhotoChange } from '@/types/finance.types';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -58,7 +60,7 @@ export function SupplierForm({ supplier, isSubmitting, onSubmit, onCancel }: Sup
       whatsappNo: supplier?.whatsappNo ?? '',
       companyAddress: supplier?.companyAddress ?? '',
       cityState: supplier?.cityState ?? '',
-      country: supplier?.country ?? 'UAE',
+      country: supplier?.country ?? DEFAULT_COUNTRY,
       status: supplier?.status ?? 'active',
       comments: supplier?.comments ?? '',
     },
@@ -100,7 +102,12 @@ export function SupplierForm({ supplier, isSubmitting, onSubmit, onCancel }: Sup
           <Input id="cityState" {...register('cityState')} />
         </FormField>
         <FormField label="Country" htmlFor="country" error={errors.country?.message}>
-          <Input id="country" {...register('country')} />
+          <CountrySelect
+            id="country"
+            allowEmpty
+            savedValue={supplier?.country}
+            {...register('country', { deps: ['phone1', 'whatsappNo'] })}
+          />
         </FormField>
         <FormField label="Address" htmlFor="companyAddress" error={errors.companyAddress?.message} className="sm:col-span-2">
           <Textarea id="companyAddress" rows={2} {...register('companyAddress')} />

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 
 import { DatePicker } from '@/components/forms/DatePicker';
+import { CountrySelect } from '@/components/forms/CountrySelect';
 import { FormField } from '@/components/forms/FormField';
 import { todayIso } from '@/utils/money.utils';
 import { ProfilePhotoUpload } from '@/features/employees/components/ProfilePhotoUpload';
@@ -16,9 +17,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { EMPLOYEE_STATUS_OPTIONS } from '@/features/employees/constants/employee.constants';
 import {
   createEmployeeSchema,
-  employeeFormSchema,
+  updateEmployeeSchema,
   type EmployeeFormValues,
 } from '@/features/employees/schemas/employee.schema';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 import type { Employee } from '@/types/employee.types';
 import { employeeToFormValues } from '@/features/employees/utils/employee.mappers';
 
@@ -28,7 +30,7 @@ const EMPTY_DEFAULTS: EmployeeFormValues = {
   dob: '',
   homeAddress: '',
   cityState: '',
-  country: 'UAE',
+  country: DEFAULT_COUNTRY,
   phoneNo: '',
   whatsappNo: '',
   emiratesIdNo: '',
@@ -60,7 +62,7 @@ export function EmployeeForm({
   onSubmit,
   onCancel,
 }: EmployeeFormProps) {
-  const schema = mode === 'create' ? createEmployeeSchema : employeeFormSchema;
+  const schema = mode === 'create' ? createEmployeeSchema : updateEmployeeSchema;
 
   const { register, handleSubmit, formState, control } = useForm<EmployeeFormValues>({
     resolver: zodResolver(schema),
@@ -167,7 +169,11 @@ export function EmployeeForm({
             <Input id="cityState" {...register('cityState')} />
           </FormField>
           <FormField label="Country" htmlFor="country" required error={formState.errors.country?.message}>
-            <Input id="country" {...register('country')} />
+            <CountrySelect
+              id="country"
+              savedValue={employee?.country}
+              {...register('country', { deps: ['phoneNo', 'whatsappNo'] })}
+            />
           </FormField>
         </div>
       </section>

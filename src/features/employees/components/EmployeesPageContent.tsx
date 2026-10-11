@@ -16,6 +16,7 @@ import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { CountrySelect } from '@/components/forms/CountrySelect';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
@@ -210,10 +211,11 @@ export function EmployeesPageContent() {
             value={filters.companyName ?? ''}
             onChange={(e) => dispatch(setEmployeeFilters({ companyName: e.target.value, page: 1 }))}
           />
-          <Input
-            className="w-auto flex-[1_1_140px]"
-            placeholder="Country"
+          <CountrySelect
+            className="w-auto flex-[0_1_200px]"
             aria-label="Country"
+            allowEmpty
+            emptyLabel="All countries"
             value={filters.country ?? ''}
             onChange={(e) => dispatch(setEmployeeFilters({ country: e.target.value, page: 1 }))}
           />

@@ -5,6 +5,7 @@ import {
   optionalPhone,
   optionalText,
   password,
+  phonesMatchCountry,
   requiredDate,
   requiredEmail,
   requiredPhone,
@@ -46,8 +47,15 @@ export const employeeFormSchema = z.object({
 
 export type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
 
-export const createEmployeeSchema = employeeFormSchema.extend({
-  password: password('Password'),
-});
+export const createEmployeeSchema = employeeFormSchema
+  .extend({
+    password: password('Password'),
+  })
+  .superRefine(phonesMatchCountry({ phoneNo: 'Phone number', whatsappNo: 'WhatsApp number' }));
+
+/** Edit form: same fields, password optional. */
+export const updateEmployeeSchema = employeeFormSchema.superRefine(
+  phonesMatchCountry({ phoneNo: 'Phone number', whatsappNo: 'WhatsApp number' }),
+);
 
 export type CreateEmployeeFormValues = z.infer<typeof createEmployeeSchema>;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { optionalEmail, optionalPhone, optionalText, requiredText } from '@/lib/validation';
+import { optionalEmail, optionalPhone, optionalText, phonesMatchCountry, requiredText } from '@/lib/validation';
 
 export const supplierSchema = z.object({
   companyName: requiredText('Company name', 200),
@@ -13,6 +13,6 @@ export const supplierSchema = z.object({
   country: optionalText('Country', 100),
   status: z.enum(['active', 'inactive']),
   comments: optionalText('Comments', 2000),
-});
+}).superRefine(phonesMatchCountry({ phone1: 'Phone number', whatsappNo: 'WhatsApp number' }));
 
 export type SupplierFormValues = z.infer<typeof supplierSchema>;

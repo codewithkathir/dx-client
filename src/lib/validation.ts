@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { isValidPhoneForCountry } from '@/lib/countries';
 import { VALIDATION_MESSAGES as M } from '@/messages/validation.messages';
 
 /**
@@ -40,6 +41,25 @@ export function requiredPhone(label: string) {
 
 export function optionalPhone(label: string) {
   return z.union([z.literal(''), phoneRules(label)]);
+}
+
+/**
+ * superRefine for a form with a country: each listed phone field must be a valid number
+ * of that country. Empty fields are left to their own required / optional rules.
+ *   schema.superRefine(phonesMatchCountry({ phoneNo: 'Phone number' }))
+ */
+export function phonesMatchCountry(fields: Record<string, string>) {
+  return (data: { country?: string | null }, ctx: z.RefinementCtx) => {
+    for (const [field, label] of Object.entries(fields)) {
+      const value = (data as Record<string, unknown>)[field];
+      if (typeof value !== 'string' || !value.trim() || isValidPhoneForCountry(value, data.country)) continue;
+      ctx.addIssue({
+        code: 'custom',
+        path: [field],
+        message: data.country?.trim() ? M.PHONE_NOT_IN_COUNTRY(label, data.country.trim()) : M.PHONE_NEEDS_CODE(label),
+      });
+    }
+  };
 }
 
 export function requiredEmail(label = 'Email') {
