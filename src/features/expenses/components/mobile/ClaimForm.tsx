@@ -21,6 +21,7 @@ import {
 } from '@/features/expenses/hooks/useExpenseQueries';
 import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
 import { useMyAccount } from '@/features/employee-accounts/hooks/useEmployeeAccounts';
+import { MyVehicleSpendPanel } from '@/features/vehicles/components/MyVehicleSpendPanel';
 import { expenseFormSchema, type ExpenseFormValues } from '@/features/expenses/schemas/expense.schema';
 import { formatExpenseDate, getTodayExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
 import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
@@ -81,6 +82,9 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
   });
   // Fuel, maintenance…: ask which of my vehicles, and its km.
   const isVehicleExpense = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense);
+  // Drivers see their vehicle categories first.
+  const vehicleCategories = categories.filter((c) => c.isVehicleExpense);
+  const otherCategories = categories.filter((c) => !c.isVehicleExpense);
   const { data: myVehicles = [], isSuccess: vehiclesLoaded } = useMyVehiclesDropdown(true);
   // Editing an older claim: keep its vehicle in the list even if it has since been returned.
   const vehicleOptions =
@@ -248,11 +252,30 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
             onChange={(e) => pickCategory(Number(e.target.value))}
           >
             <option value={0}>Select…</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            {vehicleCategories.length > 0 ? (
+              <>
+                <optgroup label="Vehicle">
+                  {vehicleCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Other">
+                  {otherCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </>
+            ) : (
+              categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))
+            )}
           </Select>
         </FormField>
 
@@ -335,10 +358,13 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               </FormField>
             </div>
             {selectedVehicle ? (
-              <p className="-mt-1 text-xs text-muted-foreground">
-                {selectedVehicle.name}
-                {selectedVehicle.odometerKm != null ? ` · last reading ${selectedVehicle.odometerKm.toLocaleString('en-US')} km` : ''}
-              </p>
+              <>
+                <p className="-mt-1 text-xs text-muted-foreground">
+                  {selectedVehicle.name}
+                  {selectedVehicle.odometerKm != null ? ` · last reading ${selectedVehicle.odometerKm.toLocaleString('en-US')} km` : ''}
+                </p>
+                {myVehicles.some((v) => v.id === selectedVehicle.id) ? <MyVehicleSpendPanel assetId={selectedVehicle.id} /> : null}
+              </>
             ) : null}
           </div>
         ) : null}

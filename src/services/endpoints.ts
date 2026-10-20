@@ -163,6 +163,7 @@ export const API_ENDPOINTS = {
   EMPLOYEE_ASSETS: {
     LIST: `${V1}/employee/assets`,
     ODOMETER: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/odometer-readings`,
+    VEHICLE_SUMMARY: (assetId: string | number) => `${V1}/employee/assets/vehicles/${assetId}/summary`,
     ACKNOWLEDGE: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/acknowledge`,
     IMAGE: (assignmentId: string | number, imageId: string | number) =>
       `${V1}/employee/assets/${assignmentId}/images/${imageId}`,

@@ -38,7 +38,12 @@ export function formatKm(km: number): string {
  * Due state of a record by date and km, whichever comes first. Only the
  * newest record of each type counts; older ones were superseded by it.
  */
-export function dueStatus(record: ServiceRecord, isLatest: boolean, currentKm: number | null, today: string): DueStatus {
+export function dueStatus(
+  record: Pick<ServiceRecord, 'endDate' | 'nextDueKm'>,
+  isLatest: boolean,
+  currentKm: number | null,
+  today: string,
+): DueStatus {
   if (!isLatest) return 'done';
   const byDate = record.endDate;
   const byKm = record.nextDueKm;

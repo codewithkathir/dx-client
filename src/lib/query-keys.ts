@@ -78,6 +78,7 @@ export const queryKeys = {
     serviceTypes: (filters?: ServiceTypeListFilters) => ['vehicles', 'service-types', filters] as const,
     expenses: (assetId: number, filters?: VehicleExpenseFilters) => ['vehicles', assetId, 'expenses', filters] as const,
     expenseSummary: (assetId: number) => ['vehicles', assetId, 'expenses', 'summary'] as const,
+    mySummary: (assetId: number) => ['vehicles', 'mine', assetId] as const,
   },
   employeeAccounts: {
     all: ['employee-accounts'] as const,
