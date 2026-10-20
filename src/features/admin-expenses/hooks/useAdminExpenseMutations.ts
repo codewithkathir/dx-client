@@ -23,11 +23,11 @@ export function useAdminExpenseMutations() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
     // Approvals draw on (and rejections refund) employee advances.
     void queryClient.invalidateQueries({ queryKey: queryKeys.employeeAccounts.all });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
   };
 
   const approveExpense = useMutation({
-    mutationFn: ({ id, note, reimburseInFull }: { id: number; note?: string | null; reimburseInFull?: boolean }) =>
-      adminExpenseService.approve(id, note, reimburseInFull),
+    mutationFn: ({ id, note }: { id: number; note?: string | null }) => adminExpenseService.approve(id, note),
     onSuccess: (expense) => {
       invalidate();
       toast.success(

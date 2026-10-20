@@ -45,7 +45,11 @@ export function useAccountEntries(employeeId: number, filters: AccountEntryFilte
 export function useAccountMutations() {
   const queryClient = useQueryClient();
   const { handleError } = useApiError();
-  const invalidate = () => void queryClient.invalidateQueries({ queryKey: queryKeys.employeeAccounts.all });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.employeeAccounts.all });
+    // The Employees list shows each balance.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.employees.all });
+  };
 
   const giveAdvance = useMutation({
     mutationFn: ({ employeeId, payload }: { employeeId: number; payload: CashEntryPayload }) =>

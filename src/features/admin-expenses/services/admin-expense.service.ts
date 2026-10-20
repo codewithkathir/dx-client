@@ -63,11 +63,9 @@ class AdminExpenseService extends BaseService {
   }
 
   /** Approving creates the employee's reimbursement bill in Payables. */
-  approve(id: number, note?: string | null, reimburseInFull?: boolean): Promise<Expense> {
-    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id), {
-      ...(note ? { note } : {}),
-      ...(reimburseInFull ? { reimburseInFull: true } : {}),
-    });
+  /** The employee's advance is used first; only the rest becomes a reimbursement bill. */
+  approve(id: number, note?: string | null): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id), note ? { note } : {});
   }
 
   /** How approving now would split between the employee's advance and a bill. */

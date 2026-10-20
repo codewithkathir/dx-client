@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Download, Eye, Pen, Plus, Search, Trash, User, UserCheck, Users } from 'lucide-react';
 
@@ -53,6 +54,8 @@ import {
 } from '@/store/employees/employees.selectors';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { Employee, EmployeeStatus } from '@/types/employee.types';
+import { ADMIN_ROUTES } from '@/constants/routes.constants';
+import { formatMoney } from '@/utils/money.utils';
 
 type DialogMode = 'create' | 'edit' | 'view' | 'delete' | null;
 
@@ -303,6 +306,7 @@ export function EmployeesPageContent() {
                     <TableHead>Company</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Advance</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -350,6 +354,18 @@ export function EmployeesPageContent() {
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         {[employee.cityState, employee.country].filter(Boolean).join(', ') || '—'}
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap tabular-nums">
+                        {employee.advanceBalance ? (
+                          <Link
+                            href={ADMIN_ROUTES.EMPLOYEE_ACCOUNT_DETAIL(employee.id)}
+                            className="font-medium text-status-success-ink hover:underline"
+                          >
+                            {formatMoney(employee.advanceBalance)}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={employee.status} />
