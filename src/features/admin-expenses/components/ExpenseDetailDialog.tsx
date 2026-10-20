@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
+import { ExpenseVehicleField } from '@/features/admin-expenses/components/ExpenseVehicleField';
 import { ExpenseAttachmentPreview } from '@/features/expenses/components/ExpenseAttachmentPreview';
 import { ExpenseStageBadge } from '@/features/expenses/components/ExpenseStageBadge';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
@@ -38,6 +39,8 @@ interface ExpenseDetailDialogProps {
   onDelete: (expense: Expense) => void;
   canApprove: (expense: Expense) => boolean;
   canReject: (expense: Expense) => boolean;
+  /** After the vehicle was changed here. */
+  onUpdated?: (expense: Expense) => void;
 }
 
 const dateTime = (value: string) =>
@@ -62,6 +65,7 @@ export function ExpenseDetailDialog({
   onDelete,
   canApprove,
   canReject,
+  onUpdated,
 }: ExpenseDetailDialogProps) {
   if (!expense) return null;
   const employee = lookups.employeeMap[expense.employeeId] ?? `Employee #${expense.employeeId}`;
@@ -108,6 +112,7 @@ export function ExpenseDetailDialog({
               <Field label="Payment">{lookups.paymentMap[expense.paymentMethodId] ?? '—'}</Field>
               <Field label="Category">{lookups.categoryMap[expense.categoryId] ?? '—'}</Field>
               <Field label="Sub category">{lookups.subCategoryMap[expense.subCategoryId] ?? '—'}</Field>
+              <ExpenseVehicleField key={`${expense.id}-${expense.updatedAt}`} expense={expense} onUpdated={(e) => onUpdated?.(e)} />
               {expense.description ? (
                 <Field label="Description" wide>
                   {expense.description}

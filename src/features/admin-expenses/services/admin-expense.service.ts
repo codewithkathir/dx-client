@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '@/services/endpoints';
+import type { ApprovalPreview } from '@/types/employee-account.types';
 import { BaseService } from '@/services/base.service';
 import type {
   AdminExpenseListFilters,
@@ -6,6 +7,7 @@ import type {
   AdminExpenseSummaryFilters,
   Expense,
   ExpenseListResult,
+  UpdateExpenseVehiclePayload,
 } from '@/types/expense.types';
 
 function buildListParams(
@@ -61,14 +63,27 @@ class AdminExpenseService extends BaseService {
   }
 
   /** Approving creates the employee's reimbursement bill in Payables. */
-  approve(id: number, note?: string | null): Promise<Expense> {
-    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id), note ? { note } : {});
+  approve(id: number, note?: string | null, reimburseInFull?: boolean): Promise<Expense> {
+    return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVE(id), {
+      ...(note ? { note } : {}),
+      ...(reimburseInFull ? { reimburseInFull: true } : {}),
+    });
+  }
+
+  /** How approving now would split between the employee's advance and a bill. */
+  approvalPreview(id: number): Promise<ApprovalPreview> {
+    return this.get<ApprovalPreview>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.APPROVAL_PREVIEW(id));
   }
 
   /** Rejecting also cancels an unpaid reimbursement bill. */
   /** The note is shown to the employee and is required. */
   reject(id: number, note: string): Promise<Expense> {
     return this.post<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.REJECT(id), { note });
+  }
+
+  /** Set or fix the vehicle and km; on approved claims the linked service record is rebuilt. */
+  updateVehicle(id: number, payload: UpdateExpenseVehiclePayload): Promise<Expense> {
+    return this.put<Expense>(API_ENDPOINTS.ADMIN_EMPLOYEE_EXPENSES.VEHICLE(id), payload);
   }
 
   remove(id: number): Promise<void> {

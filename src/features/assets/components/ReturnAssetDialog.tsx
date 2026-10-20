@@ -11,6 +11,7 @@ import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ASSET_CONDITION_OPTIONS, UNASSIGNED_STATUS_OPTIONS } from '@/features/assets/constants/asset.constants';
@@ -35,9 +36,10 @@ export function ReturnAssetDialog(props: ReturnAssetDialogProps) {
 function ReturnInner({ asset, isSubmitting, onSubmit, onClose }: ReturnAssetDialogProps & { asset: Asset }) {
   const formId = useId();
   const assignment = asset.currentAssignment!;
+  const isVehicle = asset.category === 'vehicle';
   const { register, handleSubmit, formState, control } = useForm<ReturnFormValues>({
     resolver: zodResolver(returnFormSchema),
-    defaultValues: { returnedDate: todayIso(), condition: asset.condition, nextStatus: 'available', notes: '' },
+    defaultValues: { returnedDate: todayIso(), condition: asset.condition, nextStatus: 'available', notes: '', odometerKm: '' },
   });
   const { errors } = formState;
 
@@ -59,6 +61,7 @@ function ReturnInner({ asset, isSubmitting, onSubmit, onClose }: ReturnAssetDial
               condition: v.condition as AssetCondition,
               nextStatus: v.nextStatus as UnassignedAssetStatus,
               notes: v.notes.trim() || null,
+              ...(isVehicle && v.odometerKm ? { odometerKm: Number(v.odometerKm) } : {}),
             }),
           )}
         >
@@ -90,6 +93,16 @@ function ReturnInner({ asset, isSubmitting, onSubmit, onClose }: ReturnAssetDial
               </Select>
             </FormField>
           </div>
+          {isVehicle ? (
+            <FormField label="Odometer (km)" htmlFor={`${formId}-km`} error={errors.odometerKm?.message}>
+              <Input
+                id={`${formId}-km`}
+                inputMode="numeric"
+                placeholder={asset.odometerKm != null ? `Last: ${asset.odometerKm.toLocaleString('en-US')}` : 'e.g. 45200'}
+                {...register('odometerKm')}
+              />
+            </FormField>
+          ) : null}
           <FormField label="Next status" htmlFor={`${formId}-next`}>
             <SegmentedRadio id={`${formId}-next`} label="Next status" registration={register('nextStatus')} options={UNASSIGNED_STATUS_OPTIONS} />
           </FormField>

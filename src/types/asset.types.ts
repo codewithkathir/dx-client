@@ -47,6 +47,8 @@ export interface Asset {
   /** First photo, for list thumbnails. */
   coverImageId: number | null;
   imageCount: number;
+  /** Latest odometer reading (vehicles); null when none recorded. */
+  odometerKm: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -66,6 +68,8 @@ export interface AssetAssignment {
   conditionIn: AssetCondition | null;
   returnNotes: string | null;
   returnedByName: string | null;
+  odometerOut: number | null;
+  odometerIn: number | null;
 }
 
 export interface AssetImage {
@@ -79,6 +83,8 @@ export interface AssetImage {
 export interface AssetDetail extends Asset {
   history: AssetAssignment[];
   images: AssetImage[];
+  /** Latest odometer reading (vehicles). */
+  odometer: { readingKm: number; readingDate: string } | null;
 }
 
 export interface AssetSummary {
@@ -125,6 +131,8 @@ export interface AssignAssetPayload {
   expectedReturnDate?: string | null;
   condition?: AssetCondition;
   notes?: string | null;
+  /** Vehicles: odometer at hand-over. */
+  odometerKm?: number;
 }
 
 export interface ReturnAssetPayload {
@@ -132,6 +140,8 @@ export interface ReturnAssetPayload {
   condition: AssetCondition;
   nextStatus: UnassignedAssetStatus;
   notes?: string | null;
+  /** Vehicles: odometer when returned. */
+  odometerKm?: number;
 }
 
 /** Employee app: one hand-over (current or past). */
@@ -154,6 +164,8 @@ export interface MyAsset {
   conditionIn: AssetCondition | null;
   returnNotes: string | null;
   images: AssetImage[];
+  /** Vehicles still with the employee: latest odometer reading. */
+  odometer: { readingKm: number; readingDate: string } | null;
 }
 
 export interface MyAssets {

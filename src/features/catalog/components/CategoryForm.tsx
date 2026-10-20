@@ -33,6 +33,7 @@ export function CategoryForm({ category, isSubmitting, onSubmit, onCancel }: Cat
       name: category?.name ?? '',
       description: category?.description ?? '',
       status: category?.status ?? 'active',
+      isVehicleExpense: category?.isVehicleExpense ?? false,
     },
   });
 
@@ -45,6 +46,16 @@ export function CategoryForm({ category, isSubmitting, onSubmit, onCancel }: Cat
       <FormField label="Description" htmlFor="catDesc" error={formState.errors.description?.message}>
         <Textarea id="catDesc" rows={3} {...register('description')} />
       </FormField>
+
+      <label htmlFor="catVehicle" className="flex items-start gap-2.5 rounded-lg border border-border p-3 text-sm">
+        <input id="catVehicle" type="checkbox" className="mt-0.5" {...register('isVehicleExpense')} />
+        <span>
+          <span className="block font-medium">Vehicle expense</span>
+          <span className="block text-[13px] text-muted-foreground">
+            Claims ask for the vehicle and its odometer, and show on that vehicle (e.g. Fuel, Vehicle Maintenance).
+          </span>
+        </span>
+      </label>
 
       <FormField label="Status" htmlFor="catStatus" required error={formState.errors.status?.message}>
         <SegmentedRadio

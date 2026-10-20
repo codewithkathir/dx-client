@@ -3,7 +3,7 @@
 import { useId } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { Package } from 'lucide-react';
+import { Car, Package } from 'lucide-react';
 
 import { DatePicker } from '@/components/forms/DatePicker';
 import { FormField } from '@/components/forms/FormField';
@@ -27,6 +27,8 @@ import { todayIso } from '@/utils/money.utils';
 interface AssetFormDialogProps {
   open: boolean;
   asset?: Asset;
+  /** Vehicle management: category fixed, the registration number is the asset number. */
+  vehicle?: boolean;
   isSubmitting: boolean;
   onSubmit: (payload: AssetPayload) => void;
   onClose: () => void;
@@ -58,16 +60,16 @@ export function AssetFormDialog(props: AssetFormDialogProps) {
   return <AssetFormInner {...props} />;
 }
 
-function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDialogProps) {
+function AssetFormInner({ asset, vehicle = false, isSubmitting, onSubmit, onClose }: AssetFormDialogProps) {
   const formId = useId();
   const isEdit = Boolean(asset);
   const assigned = asset?.status === 'assigned';
-  const { register, handleSubmit, formState, control } = useForm<AssetFormValues>({
+  const { register, handleSubmit, formState, control, setError } = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
     defaultValues: {
       name: asset?.name ?? '',
       assetNo: asset?.assetNo ?? '',
-      category: asset?.category ?? 'laptop',
+      category: asset?.category ?? (vehicle ? 'vehicle' : 'laptop'),
       brand: asset?.brand ?? '',
       model: asset?.model ?? '',
       serialNo: asset?.serialNo ?? '',
@@ -86,40 +88,71 @@ function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDia
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent onClose={onClose} className="max-w-[720px]">
         <DialogIconHeader
-          icon={Package}
-          title={isEdit ? `Edit ${asset?.name}` : 'Add asset'}
-          description="Company equipment you hand out to employees: laptops, phones, vehicles, cards and more."
+          icon={vehicle ? Car : Package}
+          title={isEdit ? `Edit ${asset?.name}` : vehicle ? 'Add vehicle' : 'Add asset'}
+          description={
+            vehicle
+              ? 'A company vehicle. Assign it to a driver and log its services, insurance and odometer.'
+              : 'Company equipment you hand out to employees: laptops, phones, vehicles, cards and more.'
+          }
         />
         <form
           id={formId}
           noValidate
-          onSubmit={handleSubmit((v) => onSubmit(toPayload(v, isEdit, assigned)))}
+          onSubmit={handleSubmit((v) => {
+            if (vehicle && !v.assetNo.trim()) {
+              setError('assetNo', { message: 'Registration number is required' });
+              return;
+            }
+            onSubmit(toPayload(v, isEdit, assigned));
+          })}
           className="flex min-h-0 flex-col gap-[18px] overflow-y-auto px-6 py-5"
         >
-          <FormSection title="Asset">
+          <FormSection title={vehicle ? 'Vehicle' : 'Asset'}>
             <div className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
               <FormField label="Name" htmlFor={`${formId}-name`} required error={errors.name?.message} className="sm:col-span-2">
-                <Input id={`${formId}-name`} placeholder='e.g. MacBook Pro 14"' {...register('name')} />
+                <Input
+                  id={`${formId}-name`}
+                  placeholder={vehicle ? 'e.g. Toyota Hiace' : 'e.g. MacBook Pro 14"'}
+                  {...register('name')}
+                />
               </FormField>
-              <FormField label="Category" htmlFor={`${formId}-cat`} required error={errors.category?.message}>
-                <Select id={`${formId}-cat`} {...register('category')}>
-                  {(Object.keys(ASSET_CATEGORY_LABELS) as AssetCategory[]).map((c) => (
-                    <option key={c} value={c}>
-                      {ASSET_CATEGORY_LABELS[c]}
-                    </option>
-                  ))}
-                </Select>
+              {vehicle ? null : (
+                <FormField label="Category" htmlFor={`${formId}-cat`} required error={errors.category?.message}>
+                  <Select id={`${formId}-cat`} {...register('category')}>
+                    {(Object.keys(ASSET_CATEGORY_LABELS) as AssetCategory[]).map((c) => (
+                      <option key={c} value={c}>
+                        {ASSET_CATEGORY_LABELS[c]}
+                      </option>
+                    ))}
+                  </Select>
+                </FormField>
+              )}
+              <FormField
+                label={vehicle ? 'Registration no.' : 'Asset tag'}
+                htmlFor={`${formId}-no`}
+                required={vehicle}
+                error={errors.assetNo?.message}
+              >
+                <Input
+                  id={`${formId}-no`}
+                  placeholder={vehicle ? 'e.g. DXB-A-12345' : 'Automatic (AST-2026-0001)'}
+                  className="font-mono"
+                  {...register('assetNo')}
+                />
               </FormField>
-              <FormField label="Asset tag" htmlFor={`${formId}-no`} error={errors.assetNo?.message}>
-                <Input id={`${formId}-no`} placeholder="Automatic (AST-2026-0001)" className="font-mono" {...register('assetNo')} />
-              </FormField>
-              <FormField label="Brand" htmlFor={`${formId}-brand`} error={errors.brand?.message}>
-                <Input id={`${formId}-brand`} placeholder="e.g. Apple" {...register('brand')} />
+              <FormField label={vehicle ? 'Make' : 'Brand'} htmlFor={`${formId}-brand`} error={errors.brand?.message}>
+                <Input id={`${formId}-brand`} placeholder={vehicle ? 'e.g. Toyota' : 'e.g. Apple'} {...register('brand')} />
               </FormField>
               <FormField label="Model" htmlFor={`${formId}-model`} error={errors.model?.message}>
-                <Input id={`${formId}-model`} placeholder="e.g. M3 Pro" {...register('model')} />
+                <Input id={`${formId}-model`} placeholder={vehicle ? 'e.g. Hiace 2024' : 'e.g. M3 Pro'} {...register('model')} />
               </FormField>
-              <FormField label="Serial no." htmlFor={`${formId}-serial`} error={errors.serialNo?.message} className="sm:col-span-2">
+              <FormField
+                label={vehicle ? 'Chassis no. (VIN)' : 'Serial no.'}
+                htmlFor={`${formId}-serial`}
+                error={errors.serialNo?.message}
+                className={vehicle ? undefined : 'sm:col-span-2'}
+              >
                 <Input id={`${formId}-serial`} className="font-mono" {...register('serialNo')} />
               </FormField>
             </div>
@@ -202,7 +235,7 @@ function AssetFormInner({ asset, isSubmitting, onSubmit, onClose }: AssetFormDia
             Cancel
           </Button>
           <Button type="submit" form={formId} size="lg" loading={isSubmitting}>
-            {isEdit ? 'Save changes' : 'Add asset'}
+            {isEdit ? 'Save changes' : vehicle ? 'Add vehicle' : 'Add asset'}
           </Button>
         </DialogFooter>
       </DialogContent>

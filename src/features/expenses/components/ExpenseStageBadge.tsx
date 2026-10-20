@@ -8,11 +8,16 @@ import type { Expense } from '@/types/expense.types';
 type Stage = { label: string; variant: 'muted' | 'warning' | 'secondary' | 'success' | 'destructive' };
 
 /** Where a claim stands: awaiting approval → approved (awaiting payment) → paid, or rejected. */
-export function getExpenseStage(expense: Pick<Expense, 'employeeStatus' | 'adminStatus' | 'reimbursement'>): Stage {
+export function getExpenseStage(expense: Pick<Expense, 'employeeStatus' | 'adminStatus' | 'reimbursement'> & { advanceAmount?: number }): Stage {
   if (expense.adminStatus === 'rejected' || expense.employeeStatus === 'rejected') {
     return { label: 'Rejected', variant: 'destructive' };
   }
-  if (expense.adminStatus === 'paid') return { label: 'Paid', variant: 'success' };
+  if (expense.adminStatus === 'paid') {
+    // No bill and the advance covered it: settled on approval.
+    return !expense.reimbursement && (expense.advanceAmount ?? 0) > 0
+      ? { label: 'Settled from advance', variant: 'success' }
+      : { label: 'Paid', variant: 'success' };
+  }
   if (expense.employeeStatus === 'approved') {
     return expense.reimbursement?.status === 'partially_paid'
       ? { label: 'Partly paid', variant: 'warning' }
@@ -29,7 +34,7 @@ export function ExpenseStageBadge({
   expense,
   showBillLink = false,
 }: {
-  expense: Pick<Expense, 'employeeStatus' | 'adminStatus' | 'reimbursement'>;
+  expense: Pick<Expense, 'employeeStatus' | 'adminStatus' | 'reimbursement'> & { advanceAmount?: number };
   showBillLink?: boolean;
 }) {
   const stage = getExpenseStage(expense);

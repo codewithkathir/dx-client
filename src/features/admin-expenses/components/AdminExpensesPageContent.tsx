@@ -322,6 +322,7 @@ export function AdminExpensesPageContent() {
         onDelete={(e) => setDeleting(e)}
         canApprove={canApprove}
         canReject={canReject}
+        onUpdated={(updated) => setViewing((current) => (current && current.id === updated.id ? updated : current))}
       />
 
       <ExpenseDecisionDialogs

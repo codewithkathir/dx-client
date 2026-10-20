@@ -1,4 +1,6 @@
 import type { AssetListFilters } from '@/types/asset.types';
+import type { AccountEntryFilters, AccountListFilters } from '@/types/employee-account.types';
+import type { ServiceTypeListFilters, VehicleExpenseFilters } from '@/types/vehicle.types';
 import type { CatalogListFilters } from '@/types/catalog.types';
 import type { EmployeeListFilters } from '@/types/employee.types';
 import type {
@@ -59,6 +61,8 @@ export const queryKeys = {
       ['dropdowns', 'sub-sub-categories', categoryId, subCategoryId] as const,
     paymentMethods: ['dropdowns', 'payment-methods'] as const,
     whom: ['dropdowns', 'whom'] as const,
+    myVehicles: ['dropdowns', 'my-vehicles'] as const,
+    vehicles: ['dropdowns', 'vehicles'] as const,
   },
   assets: {
     all: ['assets'] as const,
@@ -66,6 +70,24 @@ export const queryKeys = {
     summary: ['assets', 'summary'] as const,
     detail: (id: number) => ['assets', id] as const,
     mine: ['assets', 'mine'] as const,
+  },
+  vehicles: {
+    all: ['vehicles'] as const,
+    serviceRecords: (assetId: number) => ['vehicles', assetId, 'service-records'] as const,
+    odometer: (assetId: number, page: number) => ['vehicles', assetId, 'odometer', page] as const,
+    serviceTypes: (filters?: ServiceTypeListFilters) => ['vehicles', 'service-types', filters] as const,
+    expenses: (assetId: number, filters?: VehicleExpenseFilters) => ['vehicles', assetId, 'expenses', filters] as const,
+    expenseSummary: (assetId: number) => ['vehicles', assetId, 'expenses', 'summary'] as const,
+  },
+  employeeAccounts: {
+    all: ['employee-accounts'] as const,
+    list: (filters?: AccountListFilters) => ['employee-accounts', 'list', filters] as const,
+    summary: ['employee-accounts', 'summary'] as const,
+    detail: (employeeId: number) => ['employee-accounts', employeeId] as const,
+    entries: (employeeId: number, filters?: AccountEntryFilters) => ['employee-accounts', employeeId, 'entries', filters] as const,
+    approvalPreview: (expenseId: number) => ['employee-accounts', 'approval-preview', expenseId] as const,
+    mine: ['employee-accounts', 'mine'] as const,
+    myEntries: (page: number) => ['employee-accounts', 'mine', 'entries', page] as const,
   },
   invoiceBranding: ['invoice-branding'] as const,
   suppliers: {

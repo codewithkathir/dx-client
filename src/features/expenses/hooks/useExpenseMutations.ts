@@ -26,6 +26,8 @@ export function useExpenseMutations() {
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
+    // Pending claims show on the employee's advance card.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.employeeAccounts.mine });
   };
 
   const createExpense = useMutation({

@@ -1,10 +1,20 @@
 import { API_ENDPOINTS } from '@/services/endpoints';
 import { BaseService } from '@/services/base.service';
-import type { DropdownOption, WhomDropdownOption } from '@/types/expense.types';
+import type {
+  CategoryDropdownOption,
+  DropdownOption,
+  VehicleDropdownOption,
+  WhomDropdownOption,
+} from '@/types/expense.types';
 
 class DropdownService extends BaseService {
-  listCategories(): Promise<DropdownOption[]> {
-    return this.get<DropdownOption[]>(API_ENDPOINTS.DROPDOWNS.CATEGORIES);
+  listCategories(): Promise<CategoryDropdownOption[]> {
+    return this.get<CategoryDropdownOption[]>(API_ENDPOINTS.DROPDOWNS.CATEGORIES);
+  }
+
+  /** Vehicles currently assigned to the signed-in employee. */
+  listMyVehicles(): Promise<VehicleDropdownOption[]> {
+    return this.get<VehicleDropdownOption[]>(API_ENDPOINTS.DROPDOWNS.MY_VEHICLES);
   }
 
   listSubCategories(categoryId: number): Promise<DropdownOption[]> {

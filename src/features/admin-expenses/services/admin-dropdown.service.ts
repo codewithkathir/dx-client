@@ -1,10 +1,15 @@
 import { API_ENDPOINTS } from '@/services/endpoints';
 import { BaseService } from '@/services/base.service';
-import type { DropdownOption, WhomDropdownOption } from '@/types/expense.types';
+import type {
+  CategoryDropdownOption,
+  DropdownOption,
+  VehicleDropdownOption,
+  WhomDropdownOption,
+} from '@/types/expense.types';
 
 class AdminDropdownService extends BaseService {
-  listCategories(): Promise<DropdownOption[]> {
-    return this.get<DropdownOption[]>(API_ENDPOINTS.ADMIN_DROPDOWNS.CATEGORIES);
+  listCategories(): Promise<CategoryDropdownOption[]> {
+    return this.get<CategoryDropdownOption[]>(API_ENDPOINTS.ADMIN_DROPDOWNS.CATEGORIES);
   }
 
   listSubCategories(categoryId: number): Promise<DropdownOption[]> {
@@ -24,6 +29,10 @@ class AdminDropdownService extends BaseService {
 
   listPaymentMethods(): Promise<DropdownOption[]> {
     return this.get<DropdownOption[]>(API_ENDPOINTS.ADMIN_DROPDOWNS.PAYMENT_METHODS);
+  }
+
+  listVehicles(): Promise<VehicleDropdownOption[]> {
+    return this.get<VehicleDropdownOption[]>(API_ENDPOINTS.ADMIN_DROPDOWNS.VEHICLES);
   }
 
   listWhom(): Promise<WhomDropdownOption[]> {

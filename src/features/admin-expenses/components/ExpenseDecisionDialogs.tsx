@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AdvanceSplitPreview } from '@/features/admin-expenses/components/AdvanceSplitPreview';
 import { useAdminExpenseMutations } from '@/features/admin-expenses/hooks/useAdminExpenseMutations';
 import type { Expense } from '@/types/expense.types';
 import { formatMoney } from '@/utils/money.utils';
@@ -22,12 +23,15 @@ interface ExpenseDecisionDialogsProps {
 export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDecisionDialogsProps) {
   const { approveExpense, rejectExpense } = useAdminExpenseMutations();
   const [reason, setReason] = useState('');
+  const [reimburseInFull, setReimburseInFull] = useState(false);
   const close = () => {
     setReason('');
+    setReimburseInFull(false);
     onClose();
   };
   const finish = (updated: Expense) => {
     setReason('');
+    setReimburseInFull(false);
     onDone?.(updated);
     onClose();
   };
@@ -40,12 +44,14 @@ export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDec
       open
       variant="success"
       title="Approve claim"
-      description={`Approve ${amount} for ${decision.employeeName}? This creates a reimbursement bill in Payables.`}
+      description={`Approve ${amount} for ${decision.employeeName}? Their advance is used first; anything above it becomes a reimbursement bill in Payables.`}
       confirmText="Approve"
       loading={approveExpense.isPending}
-      onConfirm={() => approveExpense.mutate({ id: decision.expense.id }, { onSuccess: finish })}
+      onConfirm={() => approveExpense.mutate({ id: decision.expense.id, reimburseInFull }, { onSuccess: finish })}
       onCancel={close}
-    />
+    >
+      <AdvanceSplitPreview expense={decision.expense} reimburseInFull={reimburseInFull} onReimburseInFullChange={setReimburseInFull} />
+    </ConfirmDialog>
   ) : (
     <ConfirmDialog
       open
@@ -53,6 +59,8 @@ export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDec
       icon={CircleX}
         title="Reject claim"
       description={`${decision.employeeName} will see your reason.${
+        decision.expense.advanceAmount > 0 ? ` ${formatMoney(decision.expense.advanceAmount)} goes back to their advance.` : ''
+      }${
         decision.expense.reimbursement && decision.expense.reimbursement.status !== 'cancelled'
           ? ` Its unpaid reimbursement ${decision.expense.reimbursement.billNo} will be cancelled.`
           : ''

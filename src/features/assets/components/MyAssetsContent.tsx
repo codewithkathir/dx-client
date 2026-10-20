@@ -16,6 +16,7 @@ import { ASSET_CATEGORY_LABELS, ASSET_CONDITION_LABELS } from '@/features/assets
 import { useAcknowledgeAsset, useMyAssets } from '@/features/assets/hooks/useAssets';
 import { shortDate } from '@/features/expenses/utils/claim.utils';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { MyOdometerForm } from '@/features/vehicles/components/MyOdometerForm';
 import { cn } from '@/lib/utils';
 import { API_ENDPOINTS } from '@/services/endpoints';
 import type { MyAsset } from '@/types/asset.types';
@@ -148,6 +149,8 @@ function AssetSheet({ asset, onClose }: { asset: MyAsset | null; onClose: () => 
           ) : null}
         </div>
       ) : null}
+
+      {asset.category === 'vehicle' && !asset.returnedDate && !needsConfirm ? <MyOdometerForm asset={asset} /> : null}
 
       {needsConfirm ? (
         <Button

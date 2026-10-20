@@ -18,6 +18,8 @@ export interface Category {
   name: string;
   description: string | null;
   status: CatalogStatus;
+  /** Claims in this category ask for a vehicle and its odometer. */
+  isVehicleExpense: boolean;
   createdAt: string;
   updatedAt: string;
   /** Number of sub categories under it (list rows). */
@@ -30,6 +32,8 @@ export interface SubCategory {
   name: string;
   description: string | null;
   status: CatalogStatus;
+  /** Approved vehicle claims here create a service record of this type. */
+  serviceTypeId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,6 +45,8 @@ export interface SubSubCategory {
   name: string;
   description: string | null;
   status: CatalogStatus;
+  /** Approved vehicle claims here create a service record of this type. */
+  serviceTypeId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,12 +60,14 @@ export interface CreateCategoryPayload {
   name: string;
   description?: string | null;
   status?: CatalogStatus;
+  isVehicleExpense?: boolean;
 }
 
 export interface UpdateCategoryPayload {
   name?: string;
   description?: string | null;
   status?: CatalogStatus;
+  isVehicleExpense?: boolean;
 }
 
 export interface CreateSubCategoryPayload {
@@ -67,6 +75,7 @@ export interface CreateSubCategoryPayload {
   name: string;
   description?: string | null;
   status?: CatalogStatus;
+  serviceTypeId?: number | null;
 }
 
 export interface UpdateSubCategoryPayload {
@@ -74,6 +83,7 @@ export interface UpdateSubCategoryPayload {
   name?: string;
   description?: string | null;
   status?: CatalogStatus;
+  serviceTypeId?: number | null;
 }
 
 export interface CreateSubSubCategoryPayload {
@@ -82,6 +92,7 @@ export interface CreateSubSubCategoryPayload {
   name: string;
   description?: string | null;
   status?: CatalogStatus;
+  serviceTypeId?: number | null;
 }
 
 export interface UpdateSubSubCategoryPayload {
@@ -90,4 +101,5 @@ export interface UpdateSubSubCategoryPayload {
   name?: string;
   description?: string | null;
   status?: CatalogStatus;
+  serviceTypeId?: number | null;
 }
