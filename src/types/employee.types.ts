@@ -5,6 +5,8 @@ export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
 
 export interface Employee {
   id: number;
+  /** Advance money the employee holds (list responses). */
+  advanceBalance?: number;
   empName: string;
   companyName: string;
   dob: string;

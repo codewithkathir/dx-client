@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
+import { EmployeeAccountPanel } from '@/features/employee-accounts/components/EmployeeAccountPanel';
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar';
 import { formatExpenseDate, parseExpenseDate } from '@/features/expenses/utils/expense.utils';
 import { cn } from '@/lib/utils';
@@ -155,6 +156,8 @@ export function EmployeeDetailDialog({ employee, open, onClose, onEdit }: Employ
               <Detail label="Country">{employee.country}</Detail>
             </dl>
           </section>
+
+          <EmployeeAccountPanel employeeId={employee.id} />
 
           <section aria-labelledby="emp-docs">
             <h3 id="emp-docs" className="mb-2.5 text-xs font-semibold tracking-[.04em] text-muted-foreground uppercase">

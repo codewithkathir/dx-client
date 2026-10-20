@@ -59,7 +59,6 @@ export function ExpenseReviewPageContent() {
   const [stage, setStage] = useState<ExpenseStage | 'all'>('pending');
   const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
-  const [reimburseInFull, setReimburseInFull] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useAdminExpenses({
     page: 1,
@@ -80,7 +79,6 @@ export function ExpenseReviewPageContent() {
   const select = (id: number | null) => {
     setNote('');
     setNoteError(null);
-    setReimburseInFull(false);
     const params = new URLSearchParams(searchParams.toString());
     if (id) params.set('claim', String(id));
     else params.delete('claim');
@@ -102,10 +100,7 @@ export function ExpenseReviewPageContent() {
   const deciding = approveExpense.isPending || rejectExpense.isPending;
 
   const approve = (expense: Expense) =>
-    approveExpense.mutate(
-      { id: expense.id, note: note.trim() || null, reimburseInFull },
-      { onSuccess: () => next(expense.id) },
-    );
+    approveExpense.mutate({ id: expense.id, note: note.trim() || null }, { onSuccess: () => next(expense.id) });
   const reject = (expense: Expense) => {
     if (!note.trim()) {
       setNoteError('Add a note telling the employee why the claim was rejected.');
@@ -307,13 +302,7 @@ export function ExpenseReviewPageContent() {
                       </p>
                     ) : null}
                     {canApprove(selected) ? (
-                      <AdvanceSplitPreview
-                        key={selected.id}
-                        expense={selected}
-                        reimburseInFull={reimburseInFull}
-                        onReimburseInFullChange={setReimburseInFull}
-                        className="mt-3"
-                      />
+                      <AdvanceSplitPreview key={selected.id} expense={selected} className="mt-3" />
                     ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 border-t border-border bg-[#f8fafc] px-6 py-4">

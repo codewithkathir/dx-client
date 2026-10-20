@@ -12,22 +12,19 @@ import { formatMoney } from '@/utils/money.utils';
 
 interface AdvanceSplitPreviewProps {
   expense: Expense;
-  reimburseInFull: boolean;
-  onReimburseInFullChange: (value: boolean) => void;
   className?: string;
 }
 
 /**
- * Before approving: how much of the claim the employee's advance covers and
- * what will be reimbursed via Payables. Hidden when the employee holds no advance.
+ * Before approving: how much of the claim the employee's advance covers (always
+ * used first) and what will be reimbursed via Payables. Hidden when they hold no advance.
  */
-export function AdvanceSplitPreview({ expense, reimburseInFull, onReimburseInFullChange, className }: AdvanceSplitPreviewProps) {
+export function AdvanceSplitPreview({ expense, className }: AdvanceSplitPreviewProps) {
   const { data: preview, isLoading } = useApprovalPreview(expense.id);
   if (isLoading) return <Skeleton className={cn('h-16 w-full rounded-xl', className)} />;
   if (!preview || preview.balanceBefore <= 0) return null;
 
-  const fromAdvance = reimburseInFull ? 0 : preview.fromAdvance;
-  const reimbursable = preview.amount - fromAdvance;
+  const { fromAdvance, reimbursable } = preview;
 
   return (
     <div className={cn('flex flex-col gap-2 rounded-xl border border-border bg-background p-3.5 text-[13px]', className)}>
@@ -46,18 +43,9 @@ export function AdvanceSplitPreview({ expense, reimburseInFull, onReimburseInFul
         <dt className="text-muted-foreground">Balance after</dt>
         <dd className="text-right tabular-nums">{formatMoney(preview.balanceBefore - fromAdvance)}</dd>
       </dl>
-      {!reimburseInFull && reimbursable === 0 ? (
+      {reimbursable === 0 ? (
         <p className="text-status-success-ink">Fully covered: the claim is settled on approval, no bill is created.</p>
       ) : null}
-      <label className="flex items-start gap-2 text-muted-foreground">
-        <input
-          type="checkbox"
-          className="mt-0.5"
-          checked={reimburseInFull}
-          onChange={(e) => onReimburseInFullChange(e.target.checked)}
-        />
-        Reimburse in full instead (e.g. paid with their own card)
-      </label>
     </div>
   );
 }

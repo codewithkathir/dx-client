@@ -23,15 +23,12 @@ interface ExpenseDecisionDialogsProps {
 export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDecisionDialogsProps) {
   const { approveExpense, rejectExpense } = useAdminExpenseMutations();
   const [reason, setReason] = useState('');
-  const [reimburseInFull, setReimburseInFull] = useState(false);
   const close = () => {
     setReason('');
-    setReimburseInFull(false);
     onClose();
   };
   const finish = (updated: Expense) => {
     setReason('');
-    setReimburseInFull(false);
     onDone?.(updated);
     onClose();
   };
@@ -47,10 +44,10 @@ export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDec
       description={`Approve ${amount} for ${decision.employeeName}? Their advance is used first; anything above it becomes a reimbursement bill in Payables.`}
       confirmText="Approve"
       loading={approveExpense.isPending}
-      onConfirm={() => approveExpense.mutate({ id: decision.expense.id, reimburseInFull }, { onSuccess: finish })}
+      onConfirm={() => approveExpense.mutate({ id: decision.expense.id }, { onSuccess: finish })}
       onCancel={close}
     >
-      <AdvanceSplitPreview expense={decision.expense} reimburseInFull={reimburseInFull} onReimburseInFullChange={setReimburseInFull} />
+      <AdvanceSplitPreview expense={decision.expense} />
     </ConfirmDialog>
   ) : (
     <ConfirmDialog
