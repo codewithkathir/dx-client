@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
+import { AdvanceSplitPreview } from '@/features/admin-expenses/components/AdvanceSplitPreview';
 import { useAdminExpenseMutations } from '@/features/admin-expenses/hooks/useAdminExpenseMutations';
 import { useAdminExpenses } from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
 import { useExpenseLookups } from '@/features/admin-expenses/hooks/useExpenseLookups';
@@ -58,6 +59,7 @@ export function ExpenseReviewPageContent() {
   const [stage, setStage] = useState<ExpenseStage | 'all'>('pending');
   const [note, setNote] = useState('');
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [reimburseInFull, setReimburseInFull] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useAdminExpenses({
     page: 1,
@@ -78,6 +80,7 @@ export function ExpenseReviewPageContent() {
   const select = (id: number | null) => {
     setNote('');
     setNoteError(null);
+    setReimburseInFull(false);
     const params = new URLSearchParams(searchParams.toString());
     if (id) params.set('claim', String(id));
     else params.delete('claim');
@@ -99,7 +102,10 @@ export function ExpenseReviewPageContent() {
   const deciding = approveExpense.isPending || rejectExpense.isPending;
 
   const approve = (expense: Expense) =>
-    approveExpense.mutate({ id: expense.id, note: note.trim() || null }, { onSuccess: () => next(expense.id) });
+    approveExpense.mutate(
+      { id: expense.id, note: note.trim() || null, reimburseInFull },
+      { onSuccess: () => next(expense.id) },
+    );
   const reject = (expense: Expense) => {
     if (!note.trim()) {
       setNoteError('Add a note telling the employee why the claim was rejected.');
@@ -231,6 +237,17 @@ export function ExpenseReviewPageContent() {
                   <dd>{lookups.whomMap[selected.whom] ?? '—'}</dd>
                   <dt className="text-muted-foreground">Paid with</dt>
                   <dd>{lookups.paymentMap[selected.paymentMethodId] ?? '—'}</dd>
+                  {selected.vehicle && selected.assetId ? (
+                    <>
+                      <dt className="text-muted-foreground">Vehicle</dt>
+                      <dd>
+                        <Link href={ADMIN_ROUTES.VEHICLE_DETAIL(selected.assetId)} className="font-mono text-primary hover:underline">
+                          {selected.vehicle.assetNo}
+                        </Link>
+                        {selected.odometerKm != null ? ` · ${selected.odometerKm.toLocaleString('en-US')} km` : ''}
+                      </dd>
+                    </>
+                  ) : null}
                   {selected.reimbursement && selected.reimbursement.status !== 'cancelled' ? (
                     <>
                       <dt className="text-muted-foreground">Reimbursement</dt>
@@ -289,12 +306,21 @@ export function ExpenseReviewPageContent() {
                         {noteError}
                       </p>
                     ) : null}
+                    {canApprove(selected) ? (
+                      <AdvanceSplitPreview
+                        key={selected.id}
+                        expense={selected}
+                        reimburseInFull={reimburseInFull}
+                        onReimburseInFullChange={setReimburseInFull}
+                        className="mt-3"
+                      />
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 border-t border-border bg-[#f8fafc] px-6 py-4">
                     <p className="m-0 flex-[1_1_240px] text-[13px] text-muted-foreground">
                       {canApprove(selected)
-                        ? `Approving creates a reimbursement bill in Payables for ${formatMoney(selected.amount)}, due in ${REIMBURSEMENT_DUE_DAYS} days.`
-                        : 'This claim is approved and unpaid. Rejecting cancels its reimbursement bill.'}
+                        ? `Approving uses the employee's advance first; anything above it becomes a reimbursement bill in Payables, due in ${REIMBURSEMENT_DUE_DAYS} days.`
+                        : 'This claim is approved and unpaid. Rejecting cancels its reimbursement bill and returns any advance used.'}
                     </p>
                     {canReject(selected) ? (
                       <Button variant="destructive" size="lg" disabled={deciding} onClick={() => reject(selected)}>

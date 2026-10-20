@@ -10,6 +10,8 @@ export const subSubCategoryFormSchema = z.object({
   name: requiredText('Name', 200),
   description: nullableText('Description', 2000),
   status: catalogStatusSchema,
+  /** Vehicle categories: service record created when a claim is approved. */
+  serviceTypeId: z.number().nullable(),
 });
 
 export type SubSubCategoryFormValues = z.infer<typeof subSubCategoryFormSchema>;

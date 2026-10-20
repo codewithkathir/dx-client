@@ -17,6 +17,14 @@ export interface Expense {
   description: string | null;
   paymentMethodId: number;
   supportFile: string | null;
+  /** Vehicle the claim was for (vehicle categories) and its km. */
+  assetId: number | null;
+  odometerKm: number | null;
+  vehicle?: { assetNo: string; name: string } | null;
+  /** Part of an approved claim taken from the employee's advance. */
+  advanceAmount: number;
+  /** Part reimbursed via Payables; null until approved. */
+  reimbursableAmount: number | null;
   employeeStatus: EmployeeExpenseStatus;
   adminStatus: AdminExpenseStatus;
   /** Admin's note to the employee on approval or rejection. */
@@ -59,6 +67,7 @@ export interface AdminExpenseListFilters {
   sortBy?: string;
   order?: 'asc' | 'desc';
   employeeId?: number;
+  assetId?: number;
   status?: AdminExpenseStatus;
   /** Combined stage: pending (awaiting approval), approved (awaiting payment), paid, rejected. */
   stage?: ExpenseStage;
@@ -106,6 +115,8 @@ export interface CreateExpensePayload {
   subSubCategoryId?: number | null;
   description?: string | null;
   paymentMethodId: number;
+  assetId?: number | null;
+  odometerKm?: number | null;
 }
 
 export interface UpdateExpensePayload {
@@ -117,11 +128,31 @@ export interface UpdateExpensePayload {
   subSubCategoryId?: number | null;
   description?: string | null;
   paymentMethodId?: number;
+  assetId?: number | null;
+  odometerKm?: number | null;
+}
+
+/** Admin correction of the vehicle and km on a claim. */
+export interface UpdateExpenseVehiclePayload {
+  assetId: number | null;
+  odometerKm: number | null;
 }
 
 export interface DropdownOption {
   id: number;
   name: string;
+}
+
+export interface CategoryDropdownOption extends DropdownOption {
+  /** Claims in this category ask for a vehicle and its odometer. */
+  isVehicleExpense: boolean;
+}
+
+export interface VehicleDropdownOption {
+  id: number;
+  assetNo: string;
+  name: string;
+  odometerKm: number | null;
 }
 
 export interface WhomDropdownOption {

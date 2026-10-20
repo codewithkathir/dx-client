@@ -2,6 +2,11 @@ import { z } from 'zod';
 
 const optionalDate = z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/, 'Use a valid date');
 const requiredDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date');
+/** Vehicles only; empty for other assets. */
+const odometerKm = z
+  .string()
+  .trim()
+  .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) <= 9999999), 'Enter whole km, e.g. 45200');
 
 /** Form values are strings (inputs); converted to the API payload on submit. */
 export const assetFormSchema = z.object({
@@ -34,6 +39,7 @@ export const assignFormSchema = z
     expectedReturnDate: optionalDate,
     condition: z.string().min(1),
     notes: z.string().trim().max(2000),
+    odometerKm,
   })
   .refine((v) => !v.expectedReturnDate || v.expectedReturnDate >= v.assignedDate, {
     message: "Return date can't be before the assigned date",
@@ -46,5 +52,6 @@ export const returnFormSchema = z.object({
   condition: z.string().min(1, 'Pick the condition'),
   nextStatus: z.string().min(1),
   notes: z.string().trim().max(2000),
+  odometerKm,
 });
 export type ReturnFormValues = z.infer<typeof returnFormSchema>;

@@ -52,6 +52,8 @@ export const API_ENDPOINTS = {
     STATUS: (id: string | number) => `${V1}/admin/employee-expenses/${id}/status`,
     APPROVE: (id: string | number) => `${V1}/admin/employee-expenses/${id}/approve`,
     REJECT: (id: string | number) => `${V1}/admin/employee-expenses/${id}/reject`,
+    VEHICLE: (id: string | number) => `${V1}/admin/employee-expenses/${id}/vehicle`,
+    APPROVAL_PREVIEW: (id: string | number) => `${V1}/admin/employee-expenses/${id}/approval-preview`,
     SUPPORT_FILE: (id: string | number) =>
       `${V1}/admin/employee-expenses/${id}/support-file`,
   },
@@ -61,6 +63,7 @@ export const API_ENDPOINTS = {
     SUB_SUB_CATEGORIES: `${V1}/admin/dropdowns/sub-sub-categories`,
     PAYMENT_METHODS: `${V1}/admin/dropdowns/payment-methods`,
     WHOM: `${V1}/admin/dropdowns/whom`,
+    VEHICLES: `${V1}/admin/dropdowns/vehicles`,
   },
   DROPDOWNS: {
     CATEGORIES: `${V1}/employee/dropdowns/categories`,
@@ -68,6 +71,7 @@ export const API_ENDPOINTS = {
     SUB_SUB_CATEGORIES: `${V1}/employee/dropdowns/sub-sub-categories`,
     PAYMENT_METHODS: `${V1}/employee/dropdowns/payment-methods`,
     WHOM: `${V1}/employee/dropdowns/whom`,
+    MY_VEHICLES: `${V1}/employee/dropdowns/my-vehicles`,
   },
   CATEGORIES: {
     LIST: `${V1}/admin/categories`,
@@ -130,8 +134,35 @@ export const API_ENDPOINTS = {
     IMAGES: (id: string | number) => `${V1}/admin/assets/${id}/images`,
     IMAGE: (id: string | number, imageId: string | number) => `${V1}/admin/assets/${id}/images/${imageId}`,
   },
+  VEHICLES: {
+    SERVICE_RECORDS: (assetId: string | number) => `${V1}/admin/assets/${assetId}/service-records`,
+    SERVICE_RECORD: (assetId: string | number, recordId: string | number) =>
+      `${V1}/admin/assets/${assetId}/service-records/${recordId}`,
+    ODOMETER_READINGS: (assetId: string | number) => `${V1}/admin/assets/${assetId}/odometer-readings`,
+    ODOMETER_READING: (assetId: string | number, readingId: string | number) =>
+      `${V1}/admin/assets/${assetId}/odometer-readings/${readingId}`,
+    EXPENSES: (assetId: string | number) => `${V1}/admin/assets/${assetId}/expenses`,
+    EXPENSES_SUMMARY: (assetId: string | number) => `${V1}/admin/assets/${assetId}/expenses/summary`,
+    SERVICE_TYPES: `${V1}/admin/asset-service-types`,
+    SERVICE_TYPE: (id: string | number) => `${V1}/admin/asset-service-types/${id}`,
+  },
+  EMPLOYEE_ACCOUNTS: {
+    LIST: `${V1}/admin/employee-accounts`,
+    SUMMARY: `${V1}/admin/employee-accounts/summary`,
+    DETAIL: (employeeId: string | number) => `${V1}/admin/employee-accounts/${employeeId}`,
+    ENTRIES: (employeeId: string | number) => `${V1}/admin/employee-accounts/${employeeId}/entries`,
+    ADVANCES: (employeeId: string | number) => `${V1}/admin/employee-accounts/${employeeId}/advances`,
+    RETURNS: (employeeId: string | number) => `${V1}/admin/employee-accounts/${employeeId}/returns`,
+    ADJUSTMENTS: (employeeId: string | number) => `${V1}/admin/employee-accounts/${employeeId}/adjustments`,
+    VOID: (entryId: string | number) => `${V1}/admin/employee-accounts/entries/${entryId}/void`,
+  },
+  MY_ACCOUNT: {
+    DETAIL: `${V1}/employee/account`,
+    ENTRIES: `${V1}/employee/account/entries`,
+  },
   EMPLOYEE_ASSETS: {
     LIST: `${V1}/employee/assets`,
+    ODOMETER: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/odometer-readings`,
     ACKNOWLEDGE: (assignmentId: string | number) => `${V1}/employee/assets/${assignmentId}/acknowledge`,
     IMAGE: (assignmentId: string | number, imageId: string | number) =>
       `${V1}/employee/assets/${assignmentId}/images/${imageId}`,

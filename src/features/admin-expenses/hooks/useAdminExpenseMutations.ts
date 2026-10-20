@@ -7,6 +7,7 @@ import { adminExpenseService } from '@/features/admin-expenses/services/admin-ex
 import { useApiError } from '@/hooks/useApiError';
 import { queryKeys } from '@/lib/query-keys';
 import { SUCCESS_MESSAGES } from '@/messages/success.messages';
+import type { UpdateExpenseVehiclePayload } from '@/types/expense.types';
 
 export function useAdminExpenseMutations() {
   const queryClient = useQueryClient();
@@ -17,13 +18,21 @@ export function useAdminExpenseMutations() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.adminExpenses.all });
     void queryClient.invalidateQueries({ queryKey: queryKeys.payables.all });
     void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    // Vehicle claims create or remove service records and odometer readings.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.vehicles.all });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
+    // Approvals draw on (and rejections refund) employee advances.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.employeeAccounts.all });
   };
 
   const approveExpense = useMutation({
-    mutationFn: ({ id, note }: { id: number; note?: string | null }) => adminExpenseService.approve(id, note),
-    onSuccess: () => {
+    mutationFn: ({ id, note, reimburseInFull }: { id: number; note?: string | null; reimburseInFull?: boolean }) =>
+      adminExpenseService.approve(id, note, reimburseInFull),
+    onSuccess: (expense) => {
       invalidate();
-      toast.success(SUCCESS_MESSAGES.EXPENSE_APPROVED);
+      toast.success(
+        expense.advanceAmount > 0 && !expense.reimbursableAmount ? 'Approved and settled from the advance' : SUCCESS_MESSAGES.EXPENSE_APPROVED,
+      );
     },
     onError: (err) => handleError(err),
   });
@@ -46,5 +55,15 @@ export function useAdminExpenseMutations() {
     onError: (err) => handleError(err),
   });
 
-  return { approveExpense, rejectExpense, deleteExpense };
+  const updateVehicle = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateExpenseVehiclePayload }) =>
+      adminExpenseService.updateVehicle(id, payload),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Vehicle updated');
+    },
+    onError: (err) => handleError(err),
+  });
+
+  return { approveExpense, rejectExpense, deleteExpense, updateVehicle };
 }

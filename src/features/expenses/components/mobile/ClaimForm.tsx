@@ -14,11 +14,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ACCEPTED_SUPPORT_FILE_TYPES, MAX_SUPPORT_FILE_MB } from '@/features/expenses/constants/expense.constants';
 import {
   useCategoryDropdown,
+  useMyVehiclesDropdown,
   usePaymentMethodDropdown,
   useSubCategoryDropdown,
   useSubSubCategoryDropdown,
 } from '@/features/expenses/hooks/useExpenseQueries';
 import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
+import { useMyAccount } from '@/features/employee-accounts/hooks/useEmployeeAccounts';
 import { expenseFormSchema, type ExpenseFormValues } from '@/features/expenses/schemas/expense.schema';
 import { formatExpenseDate, getTodayExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
 import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
@@ -51,13 +53,14 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
   useEffect(() => () => (previewUrl ? URL.revokeObjectURL(previewUrl) : undefined), [previewUrl]);
 
   const { data: categories = [] } = useCategoryDropdown();
+  const { data: myAccount } = useMyAccount();
   // "Whom" is always the logged-in employee; the server enforces this too.
   const { data: profile } = useEmployeeProfile();
   const { data: paymentMethods = [], isSuccess: paymentMethodsLoaded } = usePaymentMethodDropdown();
 
   // Claims are dated the day they are submitted (same rule as the desktop form).
   const date = expense?.date ?? getTodayExpenseDate();
-  const { register, handleSubmit, setValue, control, formState } = useForm<ExpenseFormValues>({
+  const { register, handleSubmit, setValue, setError, control, formState } = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
       date,
@@ -67,10 +70,24 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
       subSubCategoryId: expense?.subSubCategoryId ?? undefined,
       description: expense?.description ?? '',
       paymentMethodId: expense?.paymentMethodId ?? 0,
+      assetId: expense?.assetId ?? null,
+      odometerKm: expense?.odometerKm != null ? String(expense.odometerKm) : '',
     },
   });
   const { errors } = formState;
-  const [categoryId, subCategoryId, amount] = useWatch({ control, name: ['categoryId', 'subCategoryId', 'amount'] });
+  const [categoryId, subCategoryId, amount, assetId] = useWatch({
+    control,
+    name: ['categoryId', 'subCategoryId', 'amount', 'assetId'],
+  });
+  // Fuel, maintenance…: ask which of my vehicles, and its km.
+  const isVehicleExpense = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense);
+  const { data: myVehicles = [], isSuccess: vehiclesLoaded } = useMyVehiclesDropdown(true);
+  // Editing an older claim: keep its vehicle in the list even if it has since been returned.
+  const vehicleOptions =
+    expense?.assetId && expense.vehicle && !myVehicles.some((v) => v.id === expense.assetId)
+      ? [...myVehicles, { id: expense.assetId, assetNo: expense.vehicle.assetNo, name: expense.vehicle.name, odometerKm: null }]
+      : myVehicles;
+  const selectedVehicle = vehicleOptions.find((v) => v.id === assetId);
   const { data: subCategories = [] } = useSubCategoryDropdown(categoryId > 0 ? categoryId : undefined);
   const { data: subSubCategories = [] } = useSubSubCategoryDropdown(
     categoryId > 0 ? categoryId : undefined,
@@ -83,6 +100,10 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     setValue('categoryId', id, { shouldValidate: formState.isSubmitted });
     setValue('subCategoryId', 0);
     setValue('subSubCategoryId', undefined);
+    // Most drivers have one vehicle: pick it for them.
+    if (categories.find((c) => c.id === id)?.isVehicleExpense && !assetId && myVehicles.length === 1) {
+      setValue('assetId', myVehicles[0]!.id);
+    }
   };
   const subCategoryField = register('subCategoryId', { valueAsNumber: true });
 
@@ -95,7 +116,17 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
         id={formId}
         noValidate
         className="flex flex-1 flex-col gap-[18px] p-5"
-        onSubmit={handleSubmit((values) =>
+        onSubmit={handleSubmit((values) => {
+          if (isVehicleExpense) {
+            if (!values.assetId) {
+              setError('assetId', { message: 'Pick the vehicle this was for' });
+              return;
+            }
+            if (!values.odometerKm) {
+              setError('odometerKm', { message: "Enter the vehicle's odometer reading" });
+              return;
+            }
+          }
           onSubmit(
             {
               date: values.date,
@@ -105,10 +136,12 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               subSubCategoryId: values.subSubCategoryId ?? null,
               description: values.description || null,
               paymentMethodId: values.paymentMethodId,
+              assetId: isVehicleExpense ? (values.assetId ?? null) : null,
+              odometerKm: isVehicleExpense && values.odometerKm ? Number(values.odometerKm) : null,
             },
             receipt,
-          ),
-        )}
+          );
+        })}
       >
         {hasReceipt ? (
           <div className="flex items-stretch gap-3">
@@ -266,6 +299,50 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
           </FormField>
         ) : null}
 
+        {isVehicleExpense ? (
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3.5">
+            {vehiclesLoaded && vehicleOptions.length === 0 ? (
+              <p className="flex items-start gap-1.5 text-[13px] text-status-warning-ink">
+                <CircleAlert className="mt-px size-4 shrink-0" aria-hidden />
+                No vehicle is assigned to you. Ask your administrator to assign one before claiming vehicle expenses.
+              </p>
+            ) : null}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Vehicle" htmlFor={`${formId}-vehicle`} required error={errors.assetId?.message}>
+                <Select
+                  id={`${formId}-vehicle`}
+                  className={INPUT}
+                  aria-invalid={errors.assetId ? true : undefined}
+                  {...register('assetId', { setValueAs: (v) => (v === '' || v === '0' || v == null ? null : Number(v)) })}
+                >
+                  <option value="">Select…</option>
+                  {vehicleOptions.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.assetNo}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+              <FormField label="Odometer (km)" htmlFor={`${formId}-km`} required error={errors.odometerKm?.message}>
+                <Input
+                  id={`${formId}-km`}
+                  inputMode="numeric"
+                  className={INPUT}
+                  placeholder="e.g. 45200"
+                  aria-invalid={errors.odometerKm ? true : undefined}
+                  {...register('odometerKm')}
+                />
+              </FormField>
+            </div>
+            {selectedVehicle ? (
+              <p className="-mt-1 text-xs text-muted-foreground">
+                {selectedVehicle.name}
+                {selectedVehicle.odometerKm != null ? ` · last reading ${selectedVehicle.odometerKm.toLocaleString('en-US')} km` : ''}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Whom" htmlFor={`${formId}-whom`}>
             <Input id={`${formId}-whom`} className={INPUT} value={profile?.empName ?? ''} placeholder="You" disabled readOnly />
@@ -300,6 +377,11 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
           {isSubmitting ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
           {expense ? 'Save changes' : 'Submit for approval'}
         </button>
+        {myAccount && myAccount.balance > 0 ? (
+          <p className="text-center text-xs text-status-success-ink">
+            Your advance ({formatMoney(myAccount.balance)}) is used first; anything above it is reimbursed after approval.
+          </p>
+        ) : null}
         <p className="text-center text-xs text-muted-foreground">You can edit or delete it until an administrator approves it.</p>
       </div>
     </>

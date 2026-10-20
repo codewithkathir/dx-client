@@ -15,6 +15,7 @@ import {
   type SubSubCategoryFormValues,
 } from '@/features/catalog/schemas/sub-sub-category.schema';
 import { useCategoryOptions, useSubCategoryOptions } from '@/features/catalog/hooks/useCatalogQueries';
+import { ServiceTypeSelect, serviceTypeIdValue } from '@/features/vehicles/components/ServiceTypeSelect';
 import type { SubSubCategory } from '@/types/catalog.types';
 
 const STATUS_OPTIONS = [
@@ -50,6 +51,7 @@ export function SubSubCategoryForm({
       name: item?.name ?? '',
       description: item?.description ?? '',
       status: item?.status ?? 'active',
+      serviceTypeId: item?.serviceTypeId ?? null,
     },
   });
 
@@ -58,6 +60,7 @@ export function SubSubCategoryForm({
     categoryId > 0 ? categoryId : undefined,
   );
   const subCategories = subCategoriesData?.items ?? [];
+  const isVehicle = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense) || watch('serviceTypeId') !== null;
 
   useEffect(() => {
     if (item) return;
@@ -109,6 +112,10 @@ export function SubSubCategoryForm({
       <FormField label="Description" htmlFor="sscDesc" error={formState.errors.description?.message}>
         <Textarea id="sscDesc" rows={3} {...register('description')} />
       </FormField>
+
+      {isVehicle ? (
+        <ServiceTypeSelect id="sscServiceType" registration={register('serviceTypeId', { setValueAs: serviceTypeIdValue })} />
+      ) : null}
 
       <FormField label="Status" htmlFor="sscStatus" required error={formState.errors.status?.message}>
         <SegmentedRadio

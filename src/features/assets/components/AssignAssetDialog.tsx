@@ -10,6 +10,7 @@ import { FormField } from '@/components/forms/FormField';
 import { DialogIconHeader } from '@/components/shared/DialogIconHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAdminWhomDropdown } from '@/features/admin-expenses/hooks/useAdminExpenseQueries';
@@ -34,10 +35,18 @@ export function AssignAssetDialog(props: AssignAssetDialogProps) {
 
 function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDialogProps & { asset: Asset }) {
   const formId = useId();
+  const isVehicle = asset.category === 'vehicle';
   const { data: employees = [] } = useAdminWhomDropdown();
   const { register, handleSubmit, formState, control } = useForm<AssignFormValues>({
     resolver: zodResolver(assignFormSchema),
-    defaultValues: { employeeId: '', assignedDate: todayIso(), expectedReturnDate: '', condition: asset.condition, notes: '' },
+    defaultValues: {
+      employeeId: '',
+      assignedDate: todayIso(),
+      expectedReturnDate: '',
+      condition: asset.condition,
+      notes: '',
+      odometerKm: asset.odometerKm != null ? String(asset.odometerKm) : '',
+    },
   });
   const { errors } = formState;
   const assignedDate = useWatch({ control, name: 'assignedDate' });
@@ -45,7 +54,11 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent onClose={onClose} className="max-w-[520px]">
-        <DialogIconHeader icon={UserPlus} title="Assign asset" description="The employee is emailed and asked to confirm they received it." />
+        <DialogIconHeader
+          icon={UserPlus}
+          title={isVehicle ? 'Assign driver' : 'Assign asset'}
+          description="The employee is emailed and asked to confirm they received it."
+        />
         <form
           id={formId}
           noValidate
@@ -57,6 +70,7 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
               expectedReturnDate: v.expectedReturnDate || null,
               condition: v.condition as AssetCondition,
               notes: v.notes.trim() || null,
+              ...(isVehicle && v.odometerKm ? { odometerKm: Number(v.odometerKm) } : {}),
             }),
           )}
         >
@@ -70,7 +84,7 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
               </div>
             </div>
           </div>
-          <FormField label="Assign to" htmlFor={`${formId}-emp`} required error={errors.employeeId?.message}>
+          <FormField label={isVehicle ? 'Driver' : 'Assign to'} htmlFor={`${formId}-emp`} required error={errors.employeeId?.message}>
             <Select id={`${formId}-emp`} {...register('employeeId')}>
               <option value="">Select employee…</option>
               {employees.map((e) => (
@@ -117,7 +131,16 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
               />
               <p className="text-xs text-muted-foreground">Optional — leave empty for permanent use.</p>
             </FormField>
-            <FormField label="Condition when handed over" htmlFor={`${formId}-cond`} className="sm:col-span-2">
+            {isVehicle ? (
+              <FormField label="Odometer (km)" htmlFor={`${formId}-km`} error={errors.odometerKm?.message}>
+                <Input id={`${formId}-km`} inputMode="numeric" placeholder="e.g. 45200" {...register('odometerKm')} />
+              </FormField>
+            ) : null}
+            <FormField
+              label="Condition when handed over"
+              htmlFor={`${formId}-cond`}
+              className={isVehicle ? undefined : 'sm:col-span-2'}
+            >
               <Select id={`${formId}-cond`} {...register('condition')}>
                 {ASSET_CONDITION_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -136,7 +159,7 @@ function AssignInner({ asset, isSubmitting, onSubmit, onClose }: AssignAssetDial
             Cancel
           </Button>
           <Button type="submit" form={formId} size="lg" loading={isSubmitting}>
-            Assign asset
+            {isVehicle ? 'Assign driver' : 'Assign asset'}
           </Button>
         </DialogFooter>
       </DialogContent>

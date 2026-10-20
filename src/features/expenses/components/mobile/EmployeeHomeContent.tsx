@@ -8,6 +8,7 @@ import { mobileButton } from '@/components/mobile/mobile.styles';
 import { Skeleton } from '@/components/ui/skeleton';
 import { USER_ROUTES } from '@/constants/routes.constants';
 import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
+import { MyAccountCard } from '@/features/employee-accounts/components/MyAccountCard';
 import { ClaimRow } from '@/features/expenses/components/mobile/ClaimRow';
 import { useClaimLabels } from '@/features/expenses/hooks/useClaimLabels';
 import { useExpenseSummary, useExpenses } from '@/features/expenses/hooks/useExpenseQueries';
@@ -60,6 +61,8 @@ export function EmployeeHomeContent() {
           </div>
         </div>
       </section>
+
+      <MyAccountCard />
 
       <Link href={USER_ROUTES.EXPENSE_NEW} className={mobileButton('primary')}>
         <Camera className="size-5" />

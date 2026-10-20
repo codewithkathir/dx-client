@@ -14,6 +14,12 @@ export const expenseFormSchema = z.object({
   subSubCategoryId: z.number().min(1).optional().nullable(),
   description: nullableText('Description', 5000),
   paymentMethodId: requiredId('Paid with'),
+  /** Vehicle categories only; required there (checked on submit, where the category is known). */
+  assetId: z.number().optional().nullable(),
+  odometerKm: z
+    .string()
+    .trim()
+    .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) <= 9999999), 'Enter whole km, e.g. 45200'),
 });
 
 export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;

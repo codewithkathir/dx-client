@@ -72,7 +72,18 @@ function Progress({ claim }: { claim: Expense }) {
       ) : (
         <Step state="done" title="Approved" detail={reviewed} />
       )}
-      {stage === 'rejected' ? null : stage === 'paid' ? (
+      {stage !== 'rejected' && stage !== 'pending' && claim.advanceAmount > 0 ? (
+        <Step
+          state="done"
+          title={`${formatMoney(claim.advanceAmount)} from your advance`}
+          detail={
+            claim.reimbursableAmount
+              ? `${formatMoney(claim.reimbursableAmount)} is reimbursed to you`
+              : 'Fully covered, nothing to pay back'
+          }
+        />
+      ) : null}
+      {stage === 'rejected' || (stage === 'paid' && !claim.reimbursableAmount && claim.advanceAmount > 0) ? null : stage === 'paid' ? (
         <Step state="done" title="Paid back to you" detail={paidOn ? formatExpenseDate(paidOn) : null} />
       ) : stage === 'approved' ? (
         <Step
@@ -167,6 +178,14 @@ export function ClaimDetailContent() {
                   ['Category', categoryPath(claim)],
                   ['Whom', whomOptions.find((w) => w.id === claim.whom)?.empName ?? '—'],
                   ['Paid with', paymentMethods.find((p) => p.id === claim.paymentMethodId)?.name ?? '—'],
+                  ...(claim.vehicle
+                    ? [
+                        [
+                          'Vehicle',
+                          `${claim.vehicle.assetNo}${claim.odometerKm != null ? ` · ${claim.odometerKm.toLocaleString('en-US')} km` : ''}`,
+                        ],
+                      ]
+                    : []),
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between gap-3 px-4 py-[13px] text-[15px] not-first:border-t not-first:border-border">
                     <dt className="text-muted-foreground">{label}</dt>

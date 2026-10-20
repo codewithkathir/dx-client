@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { FormField } from '@/components/forms/FormField';
 import { SegmentedRadio } from '@/components/forms/SegmentedRadio';
@@ -14,6 +14,7 @@ import {
   type SubCategoryFormValues,
 } from '@/features/catalog/schemas/sub-category.schema';
 import { useCategoryOptions } from '@/features/catalog/hooks/useCatalogQueries';
+import { ServiceTypeSelect, serviceTypeIdValue } from '@/features/vehicles/components/ServiceTypeSelect';
 import type { SubCategory } from '@/types/catalog.types';
 
 const STATUS_OPTIONS = [
@@ -39,15 +40,18 @@ export function SubCategoryForm({
   const { data: categoriesData } = useCategoryOptions();
   const categories = categoriesData?.items ?? [];
 
-  const { register, handleSubmit, formState } = useForm<SubCategoryFormValues>({
+  const { register, handleSubmit, formState, control } = useForm<SubCategoryFormValues>({
     resolver: zodResolver(subCategoryFormSchema),
     defaultValues: {
       categoryId: subCategory?.categoryId ?? defaultCategoryId ?? 0,
       name: subCategory?.name ?? '',
       description: subCategory?.description ?? '',
       status: subCategory?.status ?? 'active',
+      serviceTypeId: subCategory?.serviceTypeId ?? null,
     },
   });
+  const [categoryId, serviceTypeId] = useWatch({ control, name: ['categoryId', 'serviceTypeId'] });
+  const isVehicle = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense) || serviceTypeId !== null;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -74,6 +78,10 @@ export function SubCategoryForm({
       <FormField label="Description" htmlFor="subCatDesc" error={formState.errors.description?.message}>
         <Textarea id="subCatDesc" rows={3} {...register('description')} />
       </FormField>
+
+      {isVehicle ? (
+        <ServiceTypeSelect id="subCatServiceType" registration={register('serviceTypeId', { setValueAs: serviceTypeIdValue })} />
+      ) : null}
 
       <FormField label="Status" htmlFor="subCatStatus" required error={formState.errors.status?.message}>
         <SegmentedRadio

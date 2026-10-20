@@ -38,6 +38,15 @@ export function useCategoryDropdown() {
   });
 }
 
+export function useMyVehiclesDropdown(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.dropdowns.myVehicles,
+    queryFn: () => dropdownService.listMyVehicles(),
+    staleTime: 60_000,
+    enabled,
+  });
+}
+
 export function useSubCategoryDropdown(categoryId: number | undefined) {
   return useQuery({
     queryKey: queryKeys.dropdowns.subCategories(categoryId),

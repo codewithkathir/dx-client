@@ -51,6 +51,24 @@ export function useAdminPaymentMethodDropdown() {
   });
 }
 
+export function useApprovalPreview(expenseId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.employeeAccounts.approvalPreview(expenseId ?? 0),
+    queryFn: () => adminExpenseService.approvalPreview(expenseId!),
+    enabled: expenseId !== null,
+    staleTime: 0,
+  });
+}
+
+export function useAdminVehicleDropdown(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.dropdowns.vehicles,
+    queryFn: () => adminDropdownService.listVehicles(),
+    staleTime: 60_000,
+    enabled,
+  });
+}
+
 export function useAdminWhomDropdown() {
   return useQuery({
     queryKey: queryKeys.adminDropdowns.whom,
