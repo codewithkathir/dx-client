@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Download, Eye, Pen, Plus, Search, Trash, User, UserCheck, Users } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { countryName } from '@/lib/countries';
+import { useCountries } from '@/features/countries/hooks/useCountries';
 import { cn } from '@/lib/utils';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { BulkActionBar } from '@/components/shared/BulkActionBar';
@@ -77,6 +77,7 @@ export function EmployeesPageContent() {
   const debouncedSearch = useDebounce(searchInput);
 
   const { data, isLoading, isError, error, refetch, isFetching } = useEmployees();
+  const { nameOf: countryName } = useCountries();
   const {
     createMutation,
     updateMutation,

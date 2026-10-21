@@ -52,6 +52,7 @@ export const queryKeys = {
       ['admin-dropdowns', 'sub-sub-categories', categoryId, subCategoryId] as const,
     paymentMethods: ['admin-dropdowns', 'payment-methods'] as const,
     whom: ['admin-dropdowns', 'whom'] as const,
+    countries: ['admin-dropdowns', 'countries'] as const,
   },
   dropdowns: {
     categories: ['dropdowns', 'categories'] as const,
@@ -63,6 +64,7 @@ export const queryKeys = {
     whom: ['dropdowns', 'whom'] as const,
     myVehicles: ['dropdowns', 'my-vehicles'] as const,
     vehicles: ['dropdowns', 'vehicles'] as const,
+    countries: ['dropdowns', 'countries'] as const,
   },
   assets: {
     all: ['assets'] as const,

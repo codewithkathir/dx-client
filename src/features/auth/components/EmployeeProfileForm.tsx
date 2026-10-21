@@ -98,6 +98,7 @@ export function EmployeeProfileForm({ profile, onDone }: EmployeeProfileFormProp
         </FormField>
         <FormField label="Country" htmlFor="country" required error={errors.country?.message}>
           <CountrySelect
+            portal={AUTH_PORTAL.USER}
             id="country"
             savedValue={profile.country}
             {...register('country', { deps: ['phoneNo', 'whatsappNo'] })}

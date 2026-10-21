@@ -1,31 +1,46 @@
+'use client';
+
 import * as React from 'react';
 
 import { Select, type SelectProps } from '@/components/ui/select';
-import { COUNTRIES, DEFAULT_COUNTRY, countryName } from '@/lib/countries';
+import { AUTH_PORTAL, type AuthPortal } from '@/constants/auth.constants';
+import { useCountries } from '@/features/countries/hooks/useCountries';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 
 interface CountrySelectProps extends Omit<SelectProps, 'children'> {
-  /** Saved value not in the list (typed before the dropdown existed), kept as an option. */
+  /** The record's saved country code; pinned first so the form keeps it while the list loads. */
   savedValue?: string | null;
   /** Adds an empty option, for optional fields and filters. */
   allowEmpty?: boolean;
   emptyLabel?: string;
+  /** Which portal's dropdown API to load the countries from. */
+  portal?: AuthPortal;
 }
 
-/** Country dropdown storing the ISO code and showing the name; the UAE is pinned first. Works with RHF register(). */
+/**
+ * Country dropdown loaded from the database, storing the ISO code and showing the name.
+ * The saved country and the UAE are pinned first. Works with RHF register().
+ */
 export const CountrySelect = React.forwardRef<HTMLSelectElement, CountrySelectProps>(
-  ({ savedValue, allowEmpty, emptyLabel = 'Select country…', ...props }, ref) => {
-    const legacy = savedValue?.trim() && !COUNTRIES.some((c) => c.code === savedValue.trim()) ? savedValue.trim() : null;
+  ({ savedValue, allowEmpty, emptyLabel = 'Select country…', portal = AUTH_PORTAL.ADMIN, ...props }, ref) => {
+    const { countries, nameOf } = useCountries(portal);
+    const pinned = [...new Set([savedValue?.trim().toUpperCase(), DEFAULT_COUNTRY].filter((c): c is string => !!c))];
     return (
-      <Select ref={ref} autoComplete="country-name" {...props}>
+      <Select ref={ref} autoComplete="country" {...props}>
         {allowEmpty ? <option value="">{emptyLabel}</option> : null}
-        {legacy ? <option value={legacy}>{legacy}</option> : null}
-        <option value={DEFAULT_COUNTRY}>{countryName(DEFAULT_COUNTRY)}</option>
-        <option disabled>──────────</option>
-        {COUNTRIES.filter((c) => c.code !== DEFAULT_COUNTRY).map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.name}
+        {pinned.map((code) => (
+          <option key={code} value={code}>
+            {nameOf(code)}
           </option>
         ))}
+        <option disabled>──────────</option>
+        {countries
+          .filter((c) => !pinned.includes(c.code))
+          .map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
+            </option>
+          ))}
       </Select>
     );
   },

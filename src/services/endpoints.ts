@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
     PAYMENT_METHODS: `${V1}/admin/dropdowns/payment-methods`,
     WHOM: `${V1}/admin/dropdowns/whom`,
     VEHICLES: `${V1}/admin/dropdowns/vehicles`,
+    COUNTRIES: `${V1}/admin/dropdowns/countries`,
   },
   DROPDOWNS: {
     CATEGORIES: `${V1}/employee/dropdowns/categories`,
@@ -72,6 +73,7 @@ export const API_ENDPOINTS = {
     PAYMENT_METHODS: `${V1}/employee/dropdowns/payment-methods`,
     WHOM: `${V1}/employee/dropdowns/whom`,
     MY_VEHICLES: `${V1}/employee/dropdowns/my-vehicles`,
+    COUNTRIES: `${V1}/employee/dropdowns/countries`,
   },
   CATEGORIES: {
     LIST: `${V1}/admin/categories`,

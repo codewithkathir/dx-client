@@ -12,7 +12,7 @@ import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { EmployeeAccountPanel } from '@/features/employee-accounts/components/EmployeeAccountPanel';
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar';
 import { formatExpenseDate, parseExpenseDate } from '@/features/expenses/utils/expense.utils';
-import { countryName } from '@/lib/countries';
+import { useCountries } from '@/features/countries/hooks/useCountries';
 import { cn } from '@/lib/utils';
 import type { Employee } from '@/types/employee.types';
 
@@ -90,6 +90,7 @@ function DocumentCard({
 
 /** Design "ModalEmployeeDetail": profile, contact & address, document cards with expiry, comments. */
 export function EmployeeDetailDialog({ employee, open, onClose, onEdit }: EmployeeDetailDialogProps) {
+  const { nameOf: countryName } = useCountries();
   if (!employee) return null;
 
   const documents = [

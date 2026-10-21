@@ -16,7 +16,7 @@ import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { employeeSelfProfilePhotoUrl } from '@/features/auth/utils/auth-photo.utils';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
-import { countryName } from '@/lib/countries';
+import { useCountries } from '@/features/countries/hooks/useCountries';
 
 type Sheet = 'edit' | 'password' | 'signOut' | null;
 
@@ -30,6 +30,7 @@ const STATUS_BADGE = {
 export function EmployeeProfilePageContent() {
   const { data: profile, isLoading, isError, error, refetch } = useEmployeeProfile();
   const logout = useLogout(AUTH_PORTAL.USER);
+  const { nameOf: countryName } = useCountries(AUTH_PORTAL.USER);
   const [sheet, setSheet] = useState<Sheet>(null);
   const close = () => setSheet(null);
 

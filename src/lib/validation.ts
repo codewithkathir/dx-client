@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { countryName, isValidPhoneForCountry } from '@/lib/countries';
+import { isValidPhoneForCountry } from '@/lib/countries';
 import { VALIDATION_MESSAGES as M } from '@/messages/validation.messages';
 
 /**
@@ -56,7 +56,7 @@ export function phonesMatchCountry(fields: Record<string, string>) {
       ctx.addIssue({
         code: 'custom',
         path: [field],
-        message: data.country?.trim() ? M.PHONE_NOT_IN_COUNTRY(label, countryName(data.country)) : M.PHONE_NEEDS_CODE(label),
+        message: data.country?.trim() ? M.PHONE_NOT_IN_COUNTRY(label) : M.PHONE_NEEDS_CODE(label),
       });
     }
   };

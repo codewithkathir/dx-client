@@ -31,7 +31,7 @@ import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
 import { SupplierForm } from '@/features/suppliers/components/SupplierForm';
 import { useSupplierMutations, useSuppliers } from '@/features/suppliers/hooks/useSuppliers';
 import { useDebounce } from '@/hooks/useDebounce';
-import { countryName } from '@/lib/countries';
+import { useCountries } from '@/features/countries/hooks/useCountries';
 import type { PartyListFilters, PartyStatus, Supplier } from '@/types/finance.types';
 
 /** "Gulf Office Supplies" → "GO". */
@@ -69,6 +69,7 @@ export function SuppliersPageContent() {
     search: debouncedSearch || undefined,
   });
   const { createSupplier, updateSupplier, deleteSupplier } = useSupplierMutations();
+  const { nameOf: countryName } = useCountries();
   const items = data?.items ?? [];
 
   const closeDialog = () => {
