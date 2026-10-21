@@ -214,6 +214,20 @@ export interface Invoice {
   updatedAt: string;
 }
 
+/** One product line on an invoice; description and unit are snapshots of what was sold. */
+export interface InvoiceLine {
+  id: number;
+  lineNo: number;
+  /** null on lines converted from invoices raised before products existed. */
+  productId: number | null;
+  productCode: string | null;
+  description: string;
+  unit: string | null;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
 export interface Receipt {
   id: number;
   invoiceId: number;
@@ -227,6 +241,7 @@ export interface Receipt {
 }
 
 export interface InvoiceDetail extends Invoice {
+  lines: InvoiceLine[];
   receipts: Receipt[];
 }
 
@@ -242,13 +257,22 @@ export interface InvoiceListFilters {
   order?: 'asc' | 'desc';
 }
 
+export interface InvoiceLinePayload {
+  productId: number;
+  /** Defaults to the product's name. */
+  description?: string | null;
+  quantity: number;
+  unitPrice: number;
+}
+
 export interface InvoicePayload {
   customerId: number;
   invoiceDate: string;
   dueDate: string;
-  subtotalAmount: number;
+  lines: InvoiceLinePayload[];
   vatRate: VatRate;
-  description: string;
+  /** Optional subject shown above the lines. */
+  description?: string | null;
   poReference?: string | null;
   notes?: string | null;
   status?: 'draft' | 'sent';

@@ -8,6 +8,7 @@ export const PAGE_TITLES = {
   ADMIN_SUPPLIERS: 'Suppliers',
   ADMIN_RECEIVABLES: 'Receivables',
   ADMIN_CUSTOMERS: 'Customers',
+  ADMIN_PRODUCTS: 'Products',
   ADMIN_SETTINGS: 'Settings',
   USER_HOME: 'Home',
   USER_EXPENSES: 'My expenses',
@@ -28,6 +29,7 @@ export const PAGE_DESCRIPTIONS = {
   ADMIN_RECEIVABLES:
     'Money owed to the company: customer invoices, receipts and balances. Download tax invoices as PDF.',
   ADMIN_CUSTOMERS: 'Companies you sell to, with their TRN and payment terms for invoices.',
+  ADMIN_PRODUCTS: 'Your price list. Pick products when you raise an invoice; prices fill in and can be changed per invoice.',
   ADMIN_SETTINGS: 'Manage your admin profile and account security.',
   USER_HOME: 'Welcome to your employee dashboard.',
   USER_EXPENSES:

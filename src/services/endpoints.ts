@@ -65,6 +65,7 @@ export const API_ENDPOINTS = {
     WHOM: `${V1}/admin/dropdowns/whom`,
     VEHICLES: `${V1}/admin/dropdowns/vehicles`,
     COUNTRIES: `${V1}/admin/dropdowns/countries`,
+    PRODUCTS: `${V1}/admin/dropdowns/products`,
   },
   DROPDOWNS: {
     CATEGORIES: `${V1}/employee/dropdowns/categories`,
@@ -115,6 +116,10 @@ export const API_ENDPOINTS = {
     OPTIONS: `${V1}/admin/customers/options`,
     DETAIL: (id: string | number) => `${V1}/admin/customers/${id}`,
     PHOTO: (id: string | number) => `${V1}/admin/customers/${id}/photo`,
+  },
+  PRODUCTS: {
+    LIST: `${V1}/admin/products`,
+    DETAIL: (id: string | number) => `${V1}/admin/products/${id}`,
   },
   RECEIVABLES: {
     LIST: `${V1}/admin/receivables`,

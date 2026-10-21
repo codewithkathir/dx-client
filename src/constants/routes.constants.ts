@@ -9,6 +9,7 @@ export const ADMIN_ROUTES = {
   SUPPLIERS: '/admin/suppliers',
   RECEIVABLES: '/admin/receivables',
   CUSTOMERS: '/admin/customers',
+  PRODUCTS: '/admin/products',
   ASSETS: '/admin/assets',
   VEHICLES: '/admin/vehicles',
   VEHICLE_DETAIL: (id: number) => `/admin/vehicles/${id}`,

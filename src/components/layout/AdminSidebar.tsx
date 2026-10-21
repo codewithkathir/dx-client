@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Banknote, Briefcase, Building, Car, FolderTree, HandCoins, Landmark, Laptop, LayoutDashboard, LogOut, Settings, Users, Wallet, type LucideIcon } from 'lucide-react';
+import { Banknote, Briefcase, Building, Car, FolderTree, HandCoins, Landmark, Laptop, LayoutDashboard, LogOut, Package, Settings, Users, Wallet, type LucideIcon } from 'lucide-react';
 
 import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { AccountAvatar } from '@/features/auth/components/AccountAvatar';
@@ -28,6 +28,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: ADMIN_ROUTES.CUSTOMERS, label: 'Customers', icon: Users },
   { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building },
   { href: ADMIN_ROUTES.PAYABLES, label: 'Purchase Bills', icon: HandCoins },
+  { href: ADMIN_ROUTES.PRODUCTS, label: 'Products', icon: Package },
   { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
   { href: ADMIN_ROUTES.SETTINGS, label: 'Settings', icon: Settings },
 ];

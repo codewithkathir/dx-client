@@ -27,6 +27,7 @@ export const VALIDATION_MESSAGES = {
     `${label} is too large${actual ? ` (${actual})` : ''}. The maximum is ${maxMb} MB.`,
   NOT_SELECTED: (label: string) => `${label} can't be blank`,
   AMOUNT_POSITIVE: (label: string) => `${label} must be greater than 0`,
+  QUANTITY_DECIMALS: (label: string) => `${label} can have at most 3 decimal places`,
   AMOUNT_TOO_LARGE: (label: string) => `${label} is too large`,
   AMOUNT_DECIMALS: (label: string) => `${label} can have at most 2 decimal places`,
   EXACT_DIGITS: (label: string, digits: number) => `${label} must be exactly ${digits} digits`,

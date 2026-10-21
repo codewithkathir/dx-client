@@ -104,10 +104,45 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onEdit, startWithRecei
                     <span className={invoice.isOverdue ? 'text-destructive' : undefined}>{formatExpenseDate(invoice.dueDate)}</span>
                   </Detail>
                   <Detail label="PO reference">{invoice.poReference ?? '—'}</Detail>
-                  <Detail label="Description" span2>
+                  <Detail label="Subject" span2>
                     <span className="whitespace-pre-line">{invoice.description ?? '—'}</span>
                   </Detail>
                 </dl>
+
+                <section aria-labelledby="invoice-items" className="flex flex-col gap-2">
+                  <h3 id="invoice-items" className="text-sm font-semibold">
+                    Items
+                  </h3>
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <Table className="min-w-[560px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-8">#</TableHead>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="text-right">Qty</TableHead>
+                          <TableHead className="text-right">Unit price</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {invoice.lines.map((line) => (
+                          <TableRow key={line.id}>
+                            <TableCell className="text-muted-foreground">{line.lineNo}</TableCell>
+                            <TableCell>
+                              <div>{line.description}</div>
+                              {line.productCode ? <div className="text-xs text-muted-foreground">{line.productCode}</div> : null}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap tabular-nums">
+                              {line.quantity} {line.unit ? <span className="text-muted-foreground">{line.unit}</span> : null}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">{formatMoney(line.unitPrice)}</TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">{formatMoney(line.amount)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </section>
 
                 <section aria-labelledby="invoice-preview" className="flex flex-col gap-2">
                   <button

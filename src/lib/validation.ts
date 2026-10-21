@@ -112,6 +112,21 @@ export function moneyString(label: string, max = 9_999_999_999.99) {
     );
 }
 
+/** Positive quantity with at most 3 decimals (e.g. 1.25 kg), typed as a string. */
+export function quantityString(label: string, max = 9_999_999) {
+  return z
+    .string({ error: M.BLANK(label) })
+    .trim()
+    .min(1, M.BLANK(label))
+    .pipe(
+      z.coerce
+        .number<string>({ error: M.INVALID(label) })
+        .positive(M.AMOUNT_POSITIVE(label))
+        .max(max, M.AMOUNT_TOO_LARGE(label))
+        .refine((v) => Math.abs(v * 1000 - Math.round(v * 1000)) < 1e-6, M.QUANTITY_DECIMALS(label)),
+    );
+}
+
 export function password(label: string, min = 8, max = 128) {
   return z
     .string({ error: M.BLANK(label) })

@@ -8,6 +8,7 @@ import type {
   AdminExpenseSummaryFilters,
 } from '@/types/expense.types';
 import type { ExpenseListFilters } from '@/types/expense.types';
+import type { ProductListFilters } from '@/types/product.types';
 import type {
   BillListFilters,
   InvoiceListFilters,
@@ -108,6 +109,11 @@ export const queryKeys = {
     all: ['customers'] as const,
     list: (filters?: PartyListFilters) => ['customers', 'list', filters] as const,
     options: ['customers', 'options'] as const,
+  },
+  products: {
+    all: ['products'] as const,
+    list: (filters?: ProductListFilters) => ['products', 'list', filters] as const,
+    options: ['products', 'options'] as const,
   },
   receivables: {
     all: ['receivables'] as const,

@@ -19,6 +19,11 @@ export function calculateTotals(subtotal: number, vatRatePercent: number) {
   };
 }
 
+/** Line amount = quantity × unit price, rounded half-up to the fils, exactly as the server computes it. */
+export function calculateLineAmount(quantity: number, unitPrice: number): number {
+  return fromFils(Math.round((Math.round(quantity * 1000) * toFils(unitPrice)) / 1000));
+}
+
 export function formatMoney(amount: number, currency = 'AED'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
