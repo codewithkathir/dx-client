@@ -38,7 +38,7 @@ export function AdvanceSplitPreview({ expense, className }: AdvanceSplitPreviewP
       <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
         <dt className="text-muted-foreground">From advance</dt>
         <dd className="text-right font-medium tabular-nums">{formatMoney(fromAdvance)}</dd>
-        <dt className="text-muted-foreground">To reimburse (bill in Payables)</dt>
+        <dt className="text-muted-foreground">To reimburse (bill in Purchase Bills)</dt>
         <dd className="text-right font-medium tabular-nums">{formatMoney(reimbursable)}</dd>
         <dt className="text-muted-foreground">Balance after</dt>
         <dd className="text-right tabular-nums">{formatMoney(preview.balanceBefore - fromAdvance)}</dd>

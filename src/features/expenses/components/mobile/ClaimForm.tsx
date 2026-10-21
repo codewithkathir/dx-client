@@ -76,9 +76,9 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     },
   });
   const { errors } = formState;
-  const [categoryId, subCategoryId, amount, assetId] = useWatch({
+  const [categoryId, subCategoryId, assetId] = useWatch({
     control,
-    name: ['categoryId', 'subCategoryId', 'amount', 'assetId'],
+    name: ['categoryId', 'subCategoryId', 'assetId'],
   });
   // Fuel, maintenance…: ask which of my vehicles, and its km.
   const isVehicleExpense = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense);
@@ -97,7 +97,6 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     categoryId > 0 ? categoryId : undefined,
     subCategoryId > 0 ? subCategoryId : undefined,
   );
-  const vatIncluded = Number.isFinite(amount) && amount > 0 ? Math.round((amount * 5) / 105 * 100) / 100 : null;
 
   const pickCategory = (id: number) => {
     if (id === categoryId) return;
@@ -236,11 +235,7 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               {...register('amount', { valueAsNumber: true })}
             />
           </div>
-          {errors.amount ? (
-            <p className="text-[13px] text-destructive">{errors.amount.message}</p>
-          ) : vatIncluded ? (
-            <p className="text-xs text-muted-foreground">If VAT 5% is included: {formatMoney(vatIncluded)}</p>
-          ) : null}
+          {errors.amount ? <p className="text-[13px] text-destructive">{errors.amount.message}</p> : null}
         </div>
 
         <FormField label="Category" htmlFor={`${formId}-cat`} required error={errors.categoryId?.message}>
