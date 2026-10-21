@@ -163,6 +163,16 @@ export function useServiceTypeMutations() {
   return { createType, updateType, deleteType };
 }
 
+/** Employee app: claim form panel for the selected vehicle. */
+export function useMyVehicleSummary(assetId: number | null) {
+  return useQuery({
+    queryKey: queryKeys.vehicles.mySummary(assetId ?? 0),
+    queryFn: () => vehicleService.getMyVehicleSummary(assetId!),
+    enabled: assetId !== null && assetId > 0,
+    staleTime: 30_000,
+  });
+}
+
 /** Employee app */
 export function useReportMyOdometer() {
   const queryClient = useQueryClient();

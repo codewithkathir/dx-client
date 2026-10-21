@@ -131,7 +131,7 @@ export function ExpenseDetailDialog({
                     <strong className="font-semibold">{expense.employeeStatus === 'rejected' ? 'Rejected' : 'Approved'}</strong> ·{' '}
                     {dateTime(expense.reviewedAt)}
                     {bill && expense.employeeStatus === 'approved' ? (
-                      <div className="text-muted-foreground">Bill {bill.billNo} created in Payables.</div>
+                      <div className="text-muted-foreground">Bill {bill.billNo} created in Purchase Bills.</div>
                     ) : null}
                     {expense.reviewNote ? <div className="text-muted-foreground">“{expense.reviewNote}”</div> : null}
                   </div>

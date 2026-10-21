@@ -175,3 +175,23 @@ export interface VehicleExpenseSummary {
   kmThisYear: number | null;
   costPerKm: number | null;
 }
+
+/** Employee claim form: the selected vehicle's km, my spend on it, and what's due. */
+export interface EmployeeVehicleSummary {
+  assetId: number;
+  assetNo: string;
+  name: string;
+  odometer: LatestOdometer | null;
+  thisMonth: ExpenseTotals;
+  thisYear: ExpenseTotals;
+  pending: ExpenseTotals;
+  recentClaims: Array<{
+    id: number;
+    date: string;
+    amount: number;
+    categoryName: string;
+    subCategoryName: string;
+    stage: ExpenseStage;
+  }>;
+  due: Array<{ serviceTypeName: string; startDate: string; endDate: string | null; nextDueKm: number | null }>;
+}

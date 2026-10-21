@@ -171,7 +171,7 @@ export function SubCategoriesTab() {
                 {items.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-muted-foreground">
-                      {categoryMap.get(row.categoryId) ?? `#${row.categoryId}`}
+                      {row.categoryName ?? categoryMap.get(row.categoryId) ?? '—'}
                     </TableCell>
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell>

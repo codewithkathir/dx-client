@@ -12,6 +12,7 @@ import { ADMIN_ROUTES } from '@/constants/routes.constants';
 import { EmployeeAccountPanel } from '@/features/employee-accounts/components/EmployeeAccountPanel';
 import { EmployeeAvatar } from '@/features/employees/components/EmployeeAvatar';
 import { formatExpenseDate, parseExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { countryName } from '@/lib/countries';
 import { cn } from '@/lib/utils';
 import type { Employee } from '@/types/employee.types';
 
@@ -153,7 +154,7 @@ export function EmployeeDetailDialog({ employee, open, onClose, onEdit }: Employ
                 {employee.homeAddress}
               </Detail>
               <Detail label="City / State">{employee.cityState}</Detail>
-              <Detail label="Country">{employee.country}</Detail>
+              <Detail label="Country">{countryName(employee.country)}</Detail>
             </dl>
           </section>
 

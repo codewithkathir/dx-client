@@ -4,7 +4,7 @@ export const PAGE_TITLES = {
   ADMIN_CATEGORIES: 'Categories',
   ADMIN_USERS: 'Users',
   ADMIN_EXPENSES: 'Expenses',
-  ADMIN_PAYABLES: 'Payables',
+  ADMIN_PAYABLES: 'Purchase Bills',
   ADMIN_SUPPLIERS: 'Suppliers',
   ADMIN_RECEIVABLES: 'Receivables',
   ADMIN_CUSTOMERS: 'Customers',
@@ -21,10 +21,10 @@ export const PAGE_DESCRIPTIONS = {
     'Manage main categories, sub categories, and sub sub categories for your catalog hierarchy.',
   ADMIN_USERS: 'User management module placeholder.',
   ADMIN_EXPENSES:
-    'Review employee expense claims. Approving a claim creates a reimbursement bill in Payables.',
+    'Review employee expense claims. Approving a claim creates a reimbursement bill in Purchase Bills.',
   ADMIN_PAYABLES:
     'Money the company owes: supplier bills and employee reimbursements, with payments and balances.',
-  ADMIN_SUPPLIERS: 'Companies you buy from. Each supplier can have bills in Payables.',
+  ADMIN_SUPPLIERS: 'Companies you buy from. Each supplier can have bills in Purchase Bills.',
   ADMIN_RECEIVABLES:
     'Money owed to the company: customer invoices, receipts and balances. Download tax invoices as PDF.',
   ADMIN_CUSTOMERS: 'Companies you sell to, with their TRN and payment terms for invoices.',

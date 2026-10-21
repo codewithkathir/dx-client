@@ -41,7 +41,7 @@ export function ExpenseDecisionDialogs({ decision, onClose, onDone }: ExpenseDec
       open
       variant="success"
       title="Approve claim"
-      description={`Approve ${amount} for ${decision.employeeName}? Their advance is used first; anything above it becomes a reimbursement bill in Payables.`}
+      description={`Approve ${amount} for ${decision.employeeName}? Their advance is used first; anything above it becomes a reimbursement bill in Purchase Bills.`}
       confirmText="Approve"
       loading={approveExpense.isPending}
       onConfirm={() => approveExpense.mutate({ id: decision.expense.id }, { onSuccess: finish })}

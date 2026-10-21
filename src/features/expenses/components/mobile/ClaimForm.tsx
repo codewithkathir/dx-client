@@ -21,6 +21,7 @@ import {
 } from '@/features/expenses/hooks/useExpenseQueries';
 import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
 import { useMyAccount } from '@/features/employee-accounts/hooks/useEmployeeAccounts';
+import { MyVehicleSpendPanel } from '@/features/vehicles/components/MyVehicleSpendPanel';
 import { expenseFormSchema, type ExpenseFormValues } from '@/features/expenses/schemas/expense.schema';
 import { formatExpenseDate, getTodayExpenseDate, supportFileLabel } from '@/features/expenses/utils/expense.utils';
 import { validateSupportFile } from '@/features/expenses/utils/support-file.utils';
@@ -75,12 +76,15 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     },
   });
   const { errors } = formState;
-  const [categoryId, subCategoryId, amount, assetId] = useWatch({
+  const [categoryId, subCategoryId, assetId] = useWatch({
     control,
-    name: ['categoryId', 'subCategoryId', 'amount', 'assetId'],
+    name: ['categoryId', 'subCategoryId', 'assetId'],
   });
   // Fuel, maintenance…: ask which of my vehicles, and its km.
   const isVehicleExpense = Boolean(categories.find((c) => c.id === categoryId)?.isVehicleExpense);
+  // Drivers see their vehicle categories first.
+  const vehicleCategories = categories.filter((c) => c.isVehicleExpense);
+  const otherCategories = categories.filter((c) => !c.isVehicleExpense);
   const { data: myVehicles = [], isSuccess: vehiclesLoaded } = useMyVehiclesDropdown(true);
   // Editing an older claim: keep its vehicle in the list even if it has since been returned.
   const vehicleOptions =
@@ -93,7 +97,6 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
     categoryId > 0 ? categoryId : undefined,
     subCategoryId > 0 ? subCategoryId : undefined,
   );
-  const vatIncluded = Number.isFinite(amount) && amount > 0 ? Math.round((amount * 5) / 105 * 100) / 100 : null;
 
   const pickCategory = (id: number) => {
     if (id === categoryId) return;
@@ -232,11 +235,7 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               {...register('amount', { valueAsNumber: true })}
             />
           </div>
-          {errors.amount ? (
-            <p className="text-[13px] text-destructive">{errors.amount.message}</p>
-          ) : vatIncluded ? (
-            <p className="text-xs text-muted-foreground">If VAT 5% is included: {formatMoney(vatIncluded)}</p>
-          ) : null}
+          {errors.amount ? <p className="text-[13px] text-destructive">{errors.amount.message}</p> : null}
         </div>
 
         <FormField label="Category" htmlFor={`${formId}-cat`} required error={errors.categoryId?.message}>
@@ -248,11 +247,30 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
             onChange={(e) => pickCategory(Number(e.target.value))}
           >
             <option value={0}>Select…</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
+            {vehicleCategories.length > 0 ? (
+              <>
+                <optgroup label="Vehicle">
+                  {vehicleCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Other">
+                  {otherCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </>
+            ) : (
+              categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))
+            )}
           </Select>
         </FormField>
 
@@ -335,10 +353,13 @@ export function ClaimForm({ expense, isSubmitting, onSubmit }: ClaimFormProps) {
               </FormField>
             </div>
             {selectedVehicle ? (
-              <p className="-mt-1 text-xs text-muted-foreground">
-                {selectedVehicle.name}
-                {selectedVehicle.odometerKm != null ? ` · last reading ${selectedVehicle.odometerKm.toLocaleString('en-US')} km` : ''}
-              </p>
+              <>
+                <p className="-mt-1 text-xs text-muted-foreground">
+                  {selectedVehicle.name}
+                  {selectedVehicle.odometerKm != null ? ` · last reading ${selectedVehicle.odometerKm.toLocaleString('en-US')} km` : ''}
+                </p>
+                {myVehicles.some((v) => v.id === selectedVehicle.id) ? <MyVehicleSpendPanel assetId={selectedVehicle.id} /> : null}
+              </>
             ) : null}
           </div>
         ) : null}

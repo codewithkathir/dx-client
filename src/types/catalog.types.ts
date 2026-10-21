@@ -29,6 +29,8 @@ export interface Category {
 export interface SubCategory {
   id: number;
   categoryId: number;
+  /** Main category name (list rows). */
+  categoryName?: string | null;
   name: string;
   description: string | null;
   status: CatalogStatus;
@@ -42,6 +44,9 @@ export interface SubSubCategory {
   id: number;
   categoryId: number;
   subCategoryId: number;
+  /** Parent names (list rows). */
+  categoryName?: string | null;
+  subCategoryName?: string | null;
   name: string;
   description: string | null;
   status: CatalogStatus;

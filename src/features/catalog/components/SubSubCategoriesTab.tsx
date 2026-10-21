@@ -60,7 +60,7 @@ export function SubSubCategoriesTab() {
     return map;
   }, [categoryOptions]);
 
-  const { data: allSubForLabels } = useSubCategories({ page: 1, limit: 200 });
+  const { data: allSubForLabels } = useSubCategories({ page: 1, limit: 100 });
   const subMap = useMemo(() => {
     const map = new Map<number, string>();
     allSubForLabels?.items.forEach((s) => map.set(s.id, s.name));
@@ -210,10 +210,10 @@ export function SubSubCategoriesTab() {
                 {items.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-sm text-muted-foreground">
-                      {categoryMap.get(row.categoryId) ?? row.categoryId}
+                      {row.categoryName ?? categoryMap.get(row.categoryId) ?? '—'}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {subMap.get(row.subCategoryId) ?? row.subCategoryId}
+                      {row.subCategoryName ?? subMap.get(row.subCategoryId) ?? '—'}
                     </TableCell>
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell>

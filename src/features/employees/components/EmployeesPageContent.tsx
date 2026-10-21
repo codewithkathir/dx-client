@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Download, Eye, Pen, Plus, Search, Trash, User, UserCheck, Users } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { countryName } from '@/lib/countries';
 import { cn } from '@/lib/utils';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { BulkActionBar } from '@/components/shared/BulkActionBar';
@@ -353,7 +354,7 @@ export function EmployeesPageContent() {
                         </div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {[employee.cityState, employee.country].filter(Boolean).join(', ') || '—'}
+                        {[employee.cityState, countryName(employee.country)].filter(Boolean).join(', ') || '—'}
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap tabular-nums">
                         {employee.advanceBalance ? (

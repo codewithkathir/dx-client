@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from '@/services/endpoints';
 import { BaseService } from '@/services/base.service';
 import type {
+  EmployeeVehicleSummary,
   LatestOdometer,
   MyOdometerPayload,
   OdometerReadingListResult,
@@ -85,6 +86,10 @@ class VehicleService extends BaseService {
   }
 
   /** Employee app */
+  getMyVehicleSummary(assetId: number): Promise<EmployeeVehicleSummary> {
+    return this.get<EmployeeVehicleSummary>(API_ENDPOINTS.EMPLOYEE_ASSETS.VEHICLE_SUMMARY(assetId));
+  }
+
   reportMyOdometer(assignmentId: number, payload: MyOdometerPayload): Promise<LatestOdometer | null> {
     return this.post<LatestOdometer | null>(API_ENDPOINTS.EMPLOYEE_ASSETS.ODOMETER(assignmentId), payload);
   }
