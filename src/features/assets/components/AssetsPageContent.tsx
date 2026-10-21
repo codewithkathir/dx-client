@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { CircleAlert, Clock, Eye, Package, PackageCheck, Pen, Plus, Search, Trash, UserCheck } from 'lucide-react';
+import { CircleAlert, Clock, Eye, Package, PackageCheck, Pen, Plus, Search, UserCheck } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatCard, StatCardsSkeleton } from '@/components/shared/MoneySummaryCards';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
@@ -54,7 +53,6 @@ export function AssetsPageContent() {
   const [formAsset, setFormAsset] = useState<Asset | 'new' | null>(null);
   const [assigning, setAssigning] = useState<Asset | null>(null);
   const [returning, setReturning] = useState<Asset | null>(null);
-  const [deleting, setDeleting] = useState<Asset | null>(null);
 
   const debouncedSearch = useDebounce(searchInput);
   const [pagedSearch, setPagedSearch] = useState(debouncedSearch);
@@ -65,7 +63,7 @@ export function AssetsPageContent() {
 
   const { data, isLoading, isError, error, refetch } = useAssets({ ...filters, search: debouncedSearch || undefined });
   const { data: summary, isLoading: summaryLoading } = useAssetSummary();
-  const { createAsset, updateAsset, deleteAsset, assignAsset, returnAsset } = useAssetMutations();
+  const { createAsset, updateAsset, assignAsset, returnAsset } = useAssetMutations();
   const items = data?.items ?? [];
 
   const setOpenAsset = (id: number | null) => {
@@ -309,17 +307,6 @@ export function AssetsPageContent() {
                           >
                             <Pen className="size-4" />
                           </Button>
-                          {asset.status !== 'assigned' ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              aria-label={`Delete ${asset.name}`}
-                              onClick={() => setDeleting(asset)}
-                            >
-                              <Trash className="size-4" />
-                            </Button>
-                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -348,10 +335,6 @@ export function AssetsPageContent() {
         onReturn={(asset) => {
           setOpenAsset(null);
           setReturning(asset);
-        }}
-        onDelete={(asset) => {
-          setOpenAsset(null);
-          setDeleting(asset);
         }}
       />
 
@@ -391,18 +374,6 @@ export function AssetsPageContent() {
         onSubmit={(payload) =>
           returning && returnAsset.mutate({ id: returning.id, payload }, { onSuccess: () => setReturning(null) })
         }
-      />
-
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        title="Delete asset"
-        description={`Delete ${deleting?.name ?? 'this asset'} (${deleting?.assetNo ?? ''})? Its hand-over history is kept.`}
-        confirmText="Delete"
-        variant="destructive"
-        loading={deleteAsset.isPending}
-        onConfirm={() => deleting && deleteAsset.mutate(deleting.id, { onSuccess: () => setDeleting(null) })}
-        onCancel={() => setDeleting(null)}
       />
     </section>
   );

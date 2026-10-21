@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, CalendarClock, Car, Gauge, Pen, Trash, Undo2, UserPlus, Wallet } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Car, Gauge, Pen, Undo2, UserPlus, Wallet } from 'lucide-react';
 
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatCard, StatCardsSkeleton } from '@/components/shared/MoneySummaryCards';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,16 +43,14 @@ const URGENCY: Record<DueStatus, number> = { overdue: 0, due_soon: 1, ok: 2, don
 
 /** One vehicle: driver, km, what's due, and its full history. */
 export function VehicleDetailContent({ vehicleId }: { vehicleId: number }) {
-  const router = useRouter();
   const [tab, setTab] = useState<DetailTab>('services');
   const [editing, setEditing] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [returning, setReturning] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const { data: vehicle, isLoading, isError, error, refetch } = useAsset(vehicleId);
   const { data: records } = useServiceRecords(vehicleId);
   const { data: spend } = useVehicleExpenseSummary(vehicleId);
-  const { updateAsset, deleteAsset, assignAsset, returnAsset } = useAssetMutations();
+  const { updateAsset, assignAsset, returnAsset } = useAssetMutations();
 
   if (isError) {
     return (
@@ -108,12 +104,6 @@ export function VehicleDetailContent({ vehicleId }: { vehicleId: number }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {vehicle.status !== 'assigned' ? (
-            <Button variant="ghost" size="lg" className="text-destructive hover:text-destructive" onClick={() => setDeleting(true)}>
-              <Trash className="size-4" />
-              Delete
-            </Button>
-          ) : null}
           <Button variant="outline" size="lg" onClick={() => setEditing(true)}>
             <Pen className="size-4" />
             Edit
@@ -247,17 +237,6 @@ export function VehicleDetailContent({ vehicleId }: { vehicleId: number }) {
         isSubmitting={returnAsset.isPending}
         onClose={() => setReturning(false)}
         onSubmit={(payload) => returnAsset.mutate({ id: vehicle.id, payload }, { onSuccess: () => setReturning(false) })}
-      />
-      <ConfirmDialog
-        open={deleting}
-        onOpenChange={(open) => !open && setDeleting(false)}
-        title="Delete vehicle"
-        description={`Delete ${vehicle.assetNo} (${vehicle.name})? Its driver and service history is kept.`}
-        confirmText="Delete"
-        variant="destructive"
-        loading={deleteAsset.isPending}
-        onConfirm={() => deleteAsset.mutate(vehicle.id, { onSuccess: () => router.push(ADMIN_ROUTES.VEHICLES) })}
-        onCancel={() => setDeleting(false)}
       />
     </section>
   );

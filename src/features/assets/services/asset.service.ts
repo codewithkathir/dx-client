@@ -46,10 +46,6 @@ class AssetService extends BaseService {
     return this.put<AssetDetail>(API_ENDPOINTS.ASSETS.DETAIL(id), payload);
   }
 
-  remove(id: number): Promise<void> {
-    return this.delete<void>(API_ENDPOINTS.ASSETS.DETAIL(id));
-  }
-
   assign(id: number, payload: AssignAssetPayload): Promise<AssetDetail> {
     return this.post<AssetDetail>(API_ENDPOINTS.ASSETS.ASSIGN(id), payload);
   }

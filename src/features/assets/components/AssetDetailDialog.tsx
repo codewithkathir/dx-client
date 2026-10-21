@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleCheck, Clock, Pen, Trash, Undo2, UserPlus } from 'lucide-react';
+import { CircleCheck, Clock, Pen, Undo2, UserPlus } from 'lucide-react';
 
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,6 @@ interface AssetDetailDialogProps {
   onEdit: (asset: AssetDetail) => void;
   onAssign: (asset: AssetDetail) => void;
   onReturn: (asset: AssetDetail) => void;
-  onDelete: (asset: AssetDetail) => void;
 }
 
 function Detail({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
@@ -41,7 +40,7 @@ function Detail({ label, children, mono }: { label: string; children: React.Reac
   );
 }
 
-export function AssetDetailDialog({ assetId, onClose, onEdit, onAssign, onReturn, onDelete }: AssetDetailDialogProps) {
+export function AssetDetailDialog({ assetId, onClose, onEdit, onAssign, onReturn }: AssetDetailDialogProps) {
   const { data: asset, isLoading, isError, error } = useAsset(assetId);
   const { addImage, removeImage } = useAssetMutations();
   if (assetId === null) return null;
@@ -201,15 +200,7 @@ export function AssetDetailDialog({ assetId, onClose, onEdit, onAssign, onReturn
             </>
           )}
         </DialogBody>
-        <DialogFooter className="justify-between sm:justify-between">
-          <div>
-            {asset && asset.status !== 'assigned' ? (
-              <Button variant="ghost" size="lg" className="text-destructive hover:text-destructive" onClick={() => onDelete(asset)}>
-                <Trash className="size-4" />
-                Delete
-              </Button>
-            ) : null}
-          </div>
+        <DialogFooter>
           <div className="flex flex-wrap justify-end gap-2">
             {asset ? (
               <Button variant="outline" size="lg" onClick={() => onEdit(asset)}>

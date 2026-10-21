@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Car, CircleAlert, Clock, Pen, Plus, Search, Trash, UserCheck, Wrench } from 'lucide-react';
+import { Car, CircleAlert, Clock, Pen, Plus, Search, UserCheck, Wrench } from 'lucide-react';
 
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorPanel } from '@/components/feedback/ErrorPanel';
 import { TableRowsSkeleton } from '@/components/feedback/PageSkeleton';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatCard, StatCardsSkeleton } from '@/components/shared/MoneySummaryCards';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { TablePagination } from '@/components/tables/TablePagination';
@@ -45,7 +44,6 @@ export function VehiclesPageContent() {
   const [formVehicle, setFormVehicle] = useState<Asset | 'new' | null>(null);
   const [assigning, setAssigning] = useState<Asset | null>(null);
   const [returning, setReturning] = useState<Asset | null>(null);
-  const [deleting, setDeleting] = useState<Asset | null>(null);
 
   const debouncedSearch = useDebounce(searchInput);
   const [pagedSearch, setPagedSearch] = useState(debouncedSearch);
@@ -61,7 +59,7 @@ export function VehiclesPageContent() {
     available: useAssets({ ...COUNT, status: 'available' }).data?.meta.total,
     inRepair: useAssets({ ...COUNT, status: 'in_repair' }).data?.meta.total,
   };
-  const { createAsset, updateAsset, deleteAsset, assignAsset, returnAsset } = useAssetMutations();
+  const { createAsset, updateAsset, assignAsset, returnAsset } = useAssetMutations();
   const items = data?.items ?? [];
   const editing = formVehicle !== null && formVehicle !== 'new' ? formVehicle : undefined;
   const countsReady = Object.values(counts).every((c) => c !== undefined);
@@ -250,17 +248,6 @@ export function VehiclesPageContent() {
                               <Button variant="ghost" size="icon" aria-label={`Edit ${v.assetNo}`} onClick={() => setFormVehicle(v)}>
                                 <Pen className="size-4" />
                               </Button>
-                              {v.status !== 'assigned' ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-destructive hover:text-destructive"
-                                  aria-label={`Delete ${v.assetNo}`}
-                                  onClick={() => setDeleting(v)}
-                                >
-                                  <Trash className="size-4" />
-                                </Button>
-                              ) : null}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -311,18 +298,6 @@ export function VehiclesPageContent() {
         isSubmitting={returnAsset.isPending}
         onClose={() => setReturning(null)}
         onSubmit={(payload) => returning && returnAsset.mutate({ id: returning.id, payload }, { onSuccess: () => setReturning(null) })}
-      />
-
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        title="Delete vehicle"
-        description={`Delete ${deleting?.assetNo ?? 'this vehicle'} (${deleting?.name ?? ''})? Its driver and service history is kept.`}
-        confirmText="Delete"
-        variant="destructive"
-        loading={deleteAsset.isPending}
-        onConfirm={() => deleting && deleteAsset.mutate(deleting.id, { onSuccess: () => setDeleting(null) })}
-        onCancel={() => setDeleting(null)}
       />
     </section>
   );

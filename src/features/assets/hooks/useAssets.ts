@@ -51,15 +51,6 @@ export function useAssetMutations() {
     onError: (err) => handleError(err),
   });
 
-  const deleteAsset = useMutation({
-    mutationFn: (id: number) => assetService.remove(id),
-    onSuccess: () => {
-      invalidate();
-      toast.success('Asset deleted');
-    },
-    onError: (err) => handleError(err),
-  });
-
   const assignAsset = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: AssignAssetPayload }) => assetService.assign(id, payload),
     onSuccess: (asset) => {
@@ -98,7 +89,7 @@ export function useAssetMutations() {
     onError: (err) => handleError(err),
   });
 
-  return { createAsset, updateAsset, deleteAsset, assignAsset, returnAsset, addImage, removeImage };
+  return { createAsset, updateAsset, assignAsset, returnAsset, addImage, removeImage };
 }
 
 /** Employee app */
