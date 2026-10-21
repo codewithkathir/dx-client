@@ -31,6 +31,7 @@ import { PAGE_DESCRIPTIONS, PAGE_TITLES } from '@/constants/page.constants';
 import { SupplierForm } from '@/features/suppliers/components/SupplierForm';
 import { useSupplierMutations, useSuppliers } from '@/features/suppliers/hooks/useSuppliers';
 import { useDebounce } from '@/hooks/useDebounce';
+import { countryName } from '@/lib/countries';
 import type { PartyListFilters, PartyStatus, Supplier } from '@/types/finance.types';
 
 /** "Gulf Office Supplies" → "GO". */
@@ -172,7 +173,7 @@ export function SuppliersPageContent() {
                         {row.phone1 ? <div className="text-xs">{row.phone1}</div> : null}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {[row.cityState, row.country].filter(Boolean).join(', ') || '—'}
+                        {[row.cityState, countryName(row.country)].filter(Boolean).join(', ') || '—'}
                       </TableCell>
                       <TableCell>
                         <Badge variant={row.status === 'active' ? 'success' : 'muted'} dot>

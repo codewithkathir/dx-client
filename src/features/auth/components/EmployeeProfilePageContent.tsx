@@ -16,6 +16,7 @@ import { useEmployeeProfile } from '@/features/auth/hooks/useEmployeeProfile';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { employeeSelfProfilePhotoUrl } from '@/features/auth/utils/auth-photo.utils';
 import { formatExpenseDate } from '@/features/expenses/utils/expense.utils';
+import { countryName } from '@/lib/countries';
 
 type Sheet = 'edit' | 'password' | 'signOut' | null;
 
@@ -112,7 +113,7 @@ export function EmployeeProfilePageContent() {
                   ['Phone', profile.phoneNo],
                   ['WhatsApp', profile.whatsappNo ?? '—'],
                   ['Date of birth', profile.dob ? formatExpenseDate(profile.dob) : '—'],
-                  ['City / State', [profile.cityState, profile.country].filter(Boolean).join(', ') || '—'],
+                  ['City / State', [profile.cityState, countryName(profile.country)].filter(Boolean).join(', ') || '—'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between gap-3 border-t border-border px-4 py-3 text-sm">
                     <dt className="text-muted-foreground">{label}</dt>

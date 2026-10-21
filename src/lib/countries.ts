@@ -1,13 +1,19 @@
 import { countries, getCountryCode } from 'countries-list';
 import { parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
 
-/** Default for new records; also pinned to the top of the country dropdown. */
-export const DEFAULT_COUNTRY = 'United Arab Emirates';
+/** Default for new records (ISO code); also pinned to the top of the country dropdown. */
+export const DEFAULT_COUNTRY = 'AE';
 
-/** Every country name, A–Z (the value stored in the database). */
-export const COUNTRY_NAMES: string[] = Object.values(countries)
-  .map((c) => c.name)
-  .sort((a, b) => a.localeCompare(b));
+/** Every country, A–Z by name. The ISO 3166-1 alpha-2 `code` is the value stored in the database. */
+export const COUNTRIES: { code: string; name: string }[] = Object.entries(countries)
+  .map(([code, c]) => ({ code, name: c.name }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+/** Display name for a stored ISO code ("AE" → "United Arab Emirates"); unknown values pass through. */
+export function countryName(country: string | null | undefined): string {
+  const value = country?.trim() ?? '';
+  return countries[value.toUpperCase() as keyof typeof countries]?.name ?? value;
+}
 
 /** Short names stored before the country dropdown. Mirrors the server's phone.util. */
 const COUNTRY_ALIASES: Record<string, CountryCode> = {
