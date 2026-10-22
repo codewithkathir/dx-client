@@ -15,7 +15,7 @@ import type { SearchResult, SearchResultType } from '@/types/dashboard.types';
 const RESULT_META: Record<SearchResultType, { label: string; icon: LucideIcon; href: (r: SearchResult) => string }> = {
   employee: { label: 'Employees', icon: User, href: (r) => `${ADMIN_ROUTES.EMPLOYEES}?search=${encodeURIComponent(r.title)}` },
   expense: { label: 'Expense claims', icon: Receipt, href: (r) => `${ADMIN_ROUTES.EXPENSES}?search=${encodeURIComponent(r.title)}` },
-  bill: { label: 'Purchase Bills', icon: FileText, href: (r) => `${ADMIN_ROUTES.PAYABLES}?bill=${r.id}` },
+  bill: { label: 'Payables', icon: FileText, href: (r) => `${ADMIN_ROUTES.PAYABLES}?bill=${r.id}` },
   invoice: { label: 'Invoices', icon: Landmark, href: (r) => `${ADMIN_ROUTES.RECEIVABLES}?invoice=${r.id}` },
   supplier: { label: 'Suppliers', icon: Building, href: (r) => `${ADMIN_ROUTES.SUPPLIERS}?search=${encodeURIComponent(r.title)}` },
   customer: { label: 'Customers', icon: Users, href: (r) => `${ADMIN_ROUTES.CUSTOMERS}?search=${encodeURIComponent(r.title)}` },

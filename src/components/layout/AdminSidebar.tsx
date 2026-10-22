@@ -27,8 +27,8 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: ADMIN_ROUTES.EMPLOYEE_ACCOUNTS, label: 'Employee Accounts', icon: Banknote },
   { href: ADMIN_ROUTES.CUSTOMERS, label: 'Customers', icon: Users },
   { href: ADMIN_ROUTES.SUPPLIERS, label: 'Suppliers', icon: Building },
-  { href: ADMIN_ROUTES.PAYABLES, label: 'Purchase Bills', icon: HandCoins },
   { href: ADMIN_ROUTES.PRODUCTS, label: 'Products', icon: Package },
+  { href: ADMIN_ROUTES.PAYABLES, label: 'Payables', icon: HandCoins },
   { href: ADMIN_ROUTES.RECEIVABLES, label: 'Receivables', icon: Landmark },
   { href: ADMIN_ROUTES.SETTINGS, label: 'Settings', icon: Settings },
 ];

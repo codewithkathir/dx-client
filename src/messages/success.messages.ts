@@ -20,6 +20,6 @@ export const SUCCESS_MESSAGES = {
   INVOICE_CANCELLED: 'Invoice cancelled.',
   RECEIPT_RECORDED: 'Receipt recorded.',
   RECEIPT_DELETED: 'Receipt deleted.',
-  EXPENSE_APPROVED: 'Expense approved. A reimbursement bill was created in Purchase Bills.',
+  EXPENSE_APPROVED: 'Expense approved. A reimbursement bill was created in Payables.',
   EXPENSE_REJECTED: 'Expense rejected.',
 } as const;

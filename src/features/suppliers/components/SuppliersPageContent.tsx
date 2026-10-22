@@ -135,7 +135,7 @@ export function SuppliersPageContent() {
             <div className="p-8">
               <EmptyState
                 title="No suppliers"
-                description="Add the companies you buy from, then record their bills in Purchase Bills."
+                description="Add the companies you buy from, then record their bills in Payables."
               />
             </div>
           ) : (
@@ -231,7 +231,7 @@ export function SuppliersPageContent() {
             icon={Building}
             tone="blue"
             title={dialogMode === 'create' ? 'Add supplier' : 'Edit supplier'}
-            description="Companies you buy from. Each supplier can have bills in Purchase Bills."
+            description="Companies you buy from. Each supplier can have bills in Payables."
           />
           <DialogBody>
             <SupplierForm

@@ -308,7 +308,7 @@ export function ExpenseReviewPageContent() {
                   <div className="flex flex-wrap items-center gap-3 border-t border-border bg-[#f8fafc] px-6 py-4">
                     <p className="m-0 flex-[1_1_240px] text-[13px] text-muted-foreground">
                       {canApprove(selected)
-                        ? `Approving uses the employee's advance first; anything above it becomes a reimbursement bill in Purchase Bills, due in ${REIMBURSEMENT_DUE_DAYS} days.`
+                        ? `Approving uses the employee's advance first; anything above it becomes a reimbursement bill in Payables, due in ${REIMBURSEMENT_DUE_DAYS} days.`
                         : 'This claim is approved and unpaid. Rejecting cancels its reimbursement bill and returns any advance used.'}
                     </p>
                     {canReject(selected) ? (
