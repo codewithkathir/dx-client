@@ -77,6 +77,8 @@ function GlobalSearch() {
         }}
         placeholder="Search bills, invoices, people…"
         aria-label="Search"
+        role="combobox"
+        aria-haspopup="dialog"
         aria-expanded={showPanel}
         aria-controls={listId}
         className="h-9 w-full rounded-[10px] border border-border bg-background pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
@@ -84,6 +86,8 @@ function GlobalSearch() {
       {showPanel ? (
         <div
           id={listId}
+          role="dialog"
+          aria-label="Search results"
           className="absolute right-0 left-0 top-11 z-40 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-popover p-1.5 shadow-md"
         >
           {groups.length === 0 ? (

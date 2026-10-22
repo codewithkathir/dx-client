@@ -59,7 +59,11 @@ interface DialogContentProps {
   onClose?: () => void;
 }
 
+/** Lets DialogTitle label its dialog (aria-labelledby) without wiring ids at each call site. */
+const DialogTitleIdContext = React.createContext<string | undefined>(undefined);
+
 export function DialogContent({ className, children, onClose }: DialogContentProps) {
+  const titleId = React.useId();
   return (
     <div
       className={cn(
@@ -68,6 +72,7 @@ export function DialogContent({ className, children, onClose }: DialogContentPro
       )}
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
     >
       {onClose ? (
         <Button
@@ -81,7 +86,7 @@ export function DialogContent({ className, children, onClose }: DialogContentPro
           <X className="size-4" />
         </Button>
       ) : null}
-      {children}
+      <DialogTitleIdContext.Provider value={titleId}>{children}</DialogTitleIdContext.Provider>
     </div>
   );
 }
@@ -98,9 +103,11 @@ export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLD
   );
 }
 
-export function DialogTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+export function DialogTitle({ className, id, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  const titleId = React.useContext(DialogTitleIdContext);
   return (
     <h2
+      id={id ?? titleId}
       className={cn('text-[19px] leading-7 font-semibold tracking-tight', className)}
       {...props}
     />

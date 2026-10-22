@@ -52,11 +52,11 @@ export function EmployeeHomeContent() {
         </div>
         <div className="relative grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-white/12 px-3 py-2.5">
-            <div className="text-xs text-[#dbe5fd]">Awaiting approval</div>
+            <div className="text-xs text-white">Awaiting approval</div>
             <div className="text-base font-semibold tabular-nums">{formatMoney(summary?.stages.pending.amount ?? 0)}</div>
           </div>
           <div className="rounded-xl bg-white/12 px-3 py-2.5">
-            <div className="text-xs text-[#dbe5fd]">Paid this year</div>
+            <div className="text-xs text-white">Paid this year</div>
             <div className="text-base font-semibold tabular-nums">{formatMoney(summary?.paidThisYear ?? 0)}</div>
           </div>
         </div>

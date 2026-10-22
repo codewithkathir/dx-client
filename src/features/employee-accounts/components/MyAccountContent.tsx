@@ -45,11 +45,11 @@ export function MyAccountContent() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-white/12 px-3 py-2.5">
-              <div className="text-xs text-[#dbe5fd]">Claims awaiting approval</div>
+              <div className="text-xs text-white">Claims awaiting approval</div>
               <div className="text-base font-semibold tabular-nums">{formatMoney(account.pendingClaims.amount)}</div>
             </div>
             <div className="rounded-xl bg-white/12 px-3 py-2.5">
-              <div className="text-xs text-[#dbe5fd]">To be reimbursed</div>
+              <div className="text-xs text-white">To be reimbursed</div>
               <div className="text-base font-semibold tabular-nums">{formatMoney(account.owedToEmployee)}</div>
             </div>
           </div>

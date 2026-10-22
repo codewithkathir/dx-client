@@ -371,7 +371,7 @@ function InvoiceFormDialogInner({
             </div>
           </form>
 
-          <aside className="flex flex-[1_1_220px] flex-col gap-3 border-border bg-background px-6 py-5 sm:border-l" aria-label="Totals" aria-live="polite">
+          <aside className="flex flex-[1_1_220px] flex-col gap-3 lg:flex-[0_0_260px] border-border bg-background px-6 py-5 sm:border-l" aria-label="Totals" aria-live="polite">
             <h3 className="text-xs font-semibold tracking-[0.04em] text-muted-foreground uppercase">Summary</h3>
             <dl className="flex flex-col gap-2.5 text-sm tabular-nums">
               <div className="flex justify-between">

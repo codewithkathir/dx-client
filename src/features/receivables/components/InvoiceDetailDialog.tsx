@@ -104,9 +104,12 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onEdit, startWithRecei
                     <span className={invoice.isOverdue ? 'text-destructive' : undefined}>{formatExpenseDate(invoice.dueDate)}</span>
                   </Detail>
                   <Detail label="PO reference">{invoice.poReference ?? '—'}</Detail>
-                  <Detail label="Subject" span2>
-                    <span className="whitespace-pre-line">{invoice.description ?? '—'}</span>
-                  </Detail>
+                  {/* Converted invoices have a single line with the same text; don't repeat it. */}
+                  {invoice.description && !(invoice.lines.length === 1 && invoice.lines[0]?.description === invoice.description) ? (
+                    <Detail label="Subject" span2>
+                      <span className="whitespace-pre-line">{invoice.description}</span>
+                    </Detail>
+                  ) : null}
                 </dl>
 
                 <section aria-labelledby="invoice-items" className="flex flex-col gap-2">
